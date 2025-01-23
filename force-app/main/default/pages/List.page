@@ -1,0 +1,498 @@
+<apex:page controller="ListCtrl" docType="html-5.0">
+    <apex:slds />
+    
+    <apex:form id="searchForm">
+        <!-- Add hidden input inside form -->
+        <apex:inputHidden id="selectedStudentId" value="{!selectedStudentId}"/>
+        
+        <apex:pageBlock title="Search Student">
+            <!-- Search Filters -->
+            <div class="search-container">
+                <div class="search-field">
+                    <label>学生コード</label>
+                    <apex:inputText value="{!studentCode}"/>
+                </div>
+                <div class="search-field">
+                    <label>氏名</label>
+                    <apex:inputText value="{!searchName}"/>
+                </div>
+                <div class="search-field">
+                    <label>クラス</label>
+                    <apex:selectList value="{!classCode}" size="1">
+                        <apex:selectOptions value="{!classOptions}"/>
+                    </apex:selectList>
+                </div>
+                <div class="search-field">
+                    <label>性別</label>
+                    <apex:selectList value="{!gender}" size="1">
+                        <apex:selectOption itemValue="" itemLabel="--なし--"/>
+                        <apex:selectOption itemValue="Male" itemLabel="男性"/>
+                        <apex:selectOption itemValue="Female" itemLabel="女性"/>
+                    </apex:selectList>
+                </div>
+                <div class="search-field">
+                    <label>生年月日</label>
+                    <apex:input type="date" value="{!birthDate}"/>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="buttonContainer">
+                <apex:commandButton value="検索" 
+                                  action="{!search}" 
+                                  reRender="results,paginationPanel" 
+                                  styleClass="actionBtn searchBtn"/>
+                <apex:commandButton value="作成" 
+                                  action="{!createStudent}" 
+                                  styleClass="actionBtn createBtn"/>
+                <apex:commandButton value="クリア" 
+                                  action="{!clearFilters}" 
+                                  reRender="searchForm,results,paginationPanel" 
+                                  styleClass="actionBtn clearBtn"/>
+                <apex:commandButton value="削除" 
+                                  onclick="return confirmBulkDelete();"
+                                  action="{!deleteSelectedStudents}"
+                                  reRender="results,paginationPanel"
+                                  styleClass="actionBtn deleteBtn"/>
+            </div>
+
+            <!-- Results Table -->
+            <apex:pageBlockTable value="{!studentWrappers}" var="wrapper" id="results">
+                <apex:column headerValue="学生コード">
+                    <apex:facet name="header">
+                        <apex:inputCheckbox onclick="toggleAll(this)" styleClass="headerCheckbox"/>
+                    </apex:facet>
+                    <apex:inputCheckbox value="{!wrapper.selected}" styleClass="rowCheckbox"/>
+                </apex:column>
+                <apex:column headerValue="学生コード">
+                    <apex:outputLink value="/apex/VF_DetailStudent?id={!wrapper.student.Id}">
+                        {!wrapper.student.StudentCode__c}
+                    </apex:outputLink>
+                </apex:column>
+                <apex:column value="{!wrapper.student.Lastname__c}" headerValue="姓"/>
+                <apex:column value="{!wrapper.student.Firstname__c}" headerValue="名"/>
+                <apex:column value="{!wrapper.student.Birthday__c}" headerValue="生年月日"/>
+                <apex:column value="{!wrapper.student.Gender__c}" headerValue="性別"/>
+                <apex:column headerValue="クラス">
+                    <apex:outputLink value="/apex/VF_DetailStudent?id={!wrapper.student.Id}">
+                        {!wrapper.student.Class_look__r.Name}
+                    </apex:outputLink>
+                </apex:column>
+                
+                <!-- New Action column -->
+                <apex:column headerValue="アクション" styleClass="actionColumn">
+                    <div class="actionButtonGroup">
+                        <apex:commandLink action="{!viewStudent}" styleClass="actionIcon viewIcon" title="表示">
+                            表示
+                            <apex:param name="studentId" value="{!wrapper.student.Id}" assignTo="{!selectedStudentId}"/>
+                        </apex:commandLink>
+                        
+                        <apex:commandLink action="{!URLFOR('/apex/VF_UpdateStudent', null, [id=wrapper.student.Id])}" 
+                                         styleClass="actionIcon editIcon" title="編集">
+                            編集
+                        </apex:commandLink>
+
+                        <apex:commandLink onclick="return confirmSingleDelete('{!wrapper.student.Id}');"
+                                         action="{!deleteStudent}"
+                                         styleClass="actionIcon deleteIcon" title="削除">
+                            削除
+                            <apex:param name="studentToDelete" value="{!wrapper.student.Id}" assignTo="{!studentToDelete}"/>
+                        </apex:commandLink>
+                    </div>
+                </apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlock>
+
+        <!-- Selection info above pagination -->
+        <div class="selection-info">
+            Selected: <span id="selectedCount">0</span> / <span id="totalCount">0</span>
+        </div>
+
+        <!-- Pagination -->
+        <div class="paginationContainer" id="paginationPanel">
+            <div class="paginationWrapper">
+                <!-- Add First button -->
+                <apex:commandButton value="≪" 
+                                  action="{!first}" 
+                                  disabled="{!NOT(hasPrevious)}" 
+                                  styleClass="pageButton" 
+                                  reRender="searchForm,results,paginationPanel"
+                                  status="loading"/>
+                
+                <!-- Existing Previous button -->
+                <apex:commandButton value="＜" 
+                                  action="{!previous}" 
+                                  disabled="{!NOT(hasPrevious)}" 
+                                  styleClass="pageButton" 
+                                  reRender="searchForm,results,paginationPanel"
+                                  status="loading"/>
+                
+                <!-- Existing page numbers -->
+                <apex:repeat value="{!pageNumbers}" var="num">
+                    <apex:commandButton value="{!num}" 
+                                      action="{!goToPage}" 
+                                      styleClass="pageButton {!IF(pageNumber==num, 'currentPage', '')}"
+                                      reRender="searchForm,results,paginationPanel"
+                                      status="loading">
+                        <apex:param name="pageNum" value="{!num}" assignTo="{!selectedPage}"/>
+                    </apex:commandButton>
+                </apex:repeat>
+                
+                <!-- Existing Next button -->
+                <apex:commandButton value="＞" 
+                                  action="{!next}" 
+                                  disabled="{!NOT(hasNext)}" 
+                                  styleClass="pageButton" 
+                                  reRender="searchForm,results,paginationPanel"
+                                  status="loading"/>
+                
+                <!-- Add Last button -->
+                <apex:commandButton value="≫" 
+                                  action="{!last}" 
+                                  disabled="{!NOT(hasNext)}" 
+                                  styleClass="pageButton" 
+                                  reRender="searchForm,results,paginationPanel"
+                                  status="loading"/>
+            </div>
+        </div>
+
+        <!-- Move Modal inside form -->
+        <div id="deleteModal" class="modal">
+            <div class="modal-content">
+                <h2>確認</h2>
+                <p>選択した学生を削除してもよろしいですか？</p>
+                <div class="modal-buttons">
+                    <button type="button" onclick="closeModal()" class="cancelBtn">キャンセル</button>
+                    <apex:commandButton value="削除" 
+                                      action="{!executeDelete}" 
+                                      styleClass="confirmDeleteBtn"
+                                      reRender="results,paginationPanel"
+                                      oncomplete="closeModal()"/>
+                </div>
+            </div>
+        </div>
+    </apex:form>
+
+    <!-- Add loading status -->
+    <apex:actionStatus id="loading">
+        <apex:facet name="start">
+            <div class="loading">処理中...</div>
+        </apex:facet>
+    </apex:actionStatus>
+
+    <script>
+        function updateSelectionCount() {
+            var checkboxes = document.getElementsByClassName('rowCheckbox');
+            var selectedCount = 0;
+            var totalCount = checkboxes.length;
+            
+            for(var i = 0; i < checkboxes.length; i++) {
+                if(checkboxes[i].checked) {
+                    selectedCount++;
+                }
+            }
+            
+            // Update all instances of selectedCount and totalCount spans
+            var selectedCountSpan = document.getElementById('selectedCount');
+            var totalCountSpan = document.getElementById('totalCount');
+            
+            if(selectedCountSpan && totalCountSpan) {
+                selectedCountSpan.textContent = selectedCount;
+                totalCountSpan.textContent = totalCount;
+            }
+        }
+
+        function toggleAll(headerCheckbox) {
+            var checkboxes = document.getElementsByClassName('rowCheckbox');
+            for(var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = headerCheckbox.checked;
+            }
+            updateSelectionCount();
+        }
+
+        function checkSelection() {
+            var checkboxes = document.getElementsByClassName('rowCheckbox');
+            var isSelected = false;
+            
+            for(var i = 0; i < checkboxes.length; i++) {
+                if(checkboxes[i].checked) {
+                    isSelected = true;
+                    break;
+                }
+            }
+            
+            if(!isSelected) {
+                document.getElementById('deleteModal').style.display = 'block';
+                return false;
+            }
+            
+            return confirm('選択した学生を削除してもよろしいですか？');
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            var modal = document.getElementById('deleteModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+        // Ensure event listeners are added when page loads
+        window.onload = function() {
+            var checkboxes = document.getElementsByClassName('rowCheckbox');
+            for(var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].addEventListener('change', updateSelectionCount);
+            }
+            
+            // Initial count update
+            updateSelectionCount();
+            
+            // Add event listener to header checkbox
+            var headerCheckbox = document.querySelector('.headerCheckbox');
+            if(headerCheckbox) {
+                headerCheckbox.addEventListener('change', function() {
+                    toggleAll(this);
+                });
+            }
+        }
+
+        function confirmSingleDelete(studentId) {
+            document.getElementById('deleteModal').style.display = 'block';
+            return false;
+        }
+        
+        function confirmBulkDelete() {
+            var checkboxes = document.getElementsByClassName('rowCheckbox');
+            var hasSelection = false;
+            
+            for(var i = 0; i < checkboxes.length; i++) {
+                if(checkboxes[i].checked) {
+                    hasSelection = true;
+                    break;
+                }
+            }
+            
+            if(!hasSelection) {
+                alert('削除する学生を選択してください。');
+                return false;
+            }
+            
+            document.getElementById('deleteModal').style.display = 'block';
+            return false;
+        }
+        
+        function closeModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+        }
+    </script>
+
+    <style>
+        /* Common button styles */
+        .actionBtn {
+            margin: 0 5px !important;
+            padding: 4px 12px !important;
+            border-radius: 4px !important;
+            font-size: 12px !important;
+            color: #000 !important;
+            border: 1px solid #dddbda !important;
+            background-color: #fff !important;
+            cursor: pointer;
+        }
+        
+        .actionBtn:hover {
+            background-color: #f4f6f9 !important;
+        }
+
+        /* Action column styles - chỉ giữ lại layout, bỏ màu sắc */
+        .actionColumn {
+            white-space: nowrap;
+            width: 200px;
+        }
+        
+        .actionButtonGroup {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        /* Pagination styles */
+        .paginationContainer {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        
+        .paginationWrapper {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+        
+        .pageButton {
+            padding: 5px 10px !important;
+            margin: 0 2px !important;
+            border: 1px solid #dddbda !important;
+            border-radius: 4px !important;
+            background-color: white !important;
+            color: #000 !important;
+            cursor: pointer;
+        }
+
+        /* Add styles for checkbox alignment */
+        .headerCheckbox, .rowCheckbox {
+            vertical-align: middle !important;
+        }
+
+        /* Add these new styles */
+        .search-container {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            padding: 10px;
+            align-items: flex-start;
+        }
+
+        .search-field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .search-field label {
+            font-size: 12px;
+            color: #514f4d;
+        }
+
+        .search-field input,
+        .search-field select {
+            padding: 4px;
+            border: 1px solid #dddbda;
+            border-radius: 4px;
+            min-width: 120px;
+        }
+
+        .selection-info {
+            margin: 20px 0 10px;
+            padding: 5px 10px;
+            font-size: 13px;
+            color: #514f4d;
+            background-color: #f3f3f3;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        /* Action icons styles */
+        .actionButtonGroup {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .actionIcon {
+            min-width: 50px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none !important;
+            font-size: 12px;
+            padding: 0 10px;
+        }
+
+        /* View button - Blue */
+        .viewIcon, .viewIcon:link, .viewIcon:visited {
+            background-color: #1589ee;
+            border: 1px solid #1589ee;
+            color: white !important;
+        }
+        .viewIcon:hover {
+            background-color: #0070d2;
+            border-color: #0070d2;
+        }
+
+        /* Edit button - Orange */
+        .editIcon, .editIcon:link, .editIcon:visited {
+            background-color: #ff9900;
+            border: 1px solid #ff9900;
+            color: white !important;
+        }
+        .editIcon:hover {
+            background-color: #ff8800;
+            border-color: #ff8800;
+        }
+
+        /* Delete button - Red */
+        .deleteIcon, .deleteIcon:link, .deleteIcon:visited {
+            background-color: #e52d27;
+            border: 1px solid #e52d27;
+            color: white !important;
+        }
+        .deleteIcon:hover {
+            background-color: #cc0000;
+            border-color: #cc0000;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 400px;
+            text-align: center;
+            color: black;
+        }
+        
+        .modal-content h2 {
+            color: black;
+        }
+        
+        .modal-content p {
+            color: black;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .cancelBtn, .confirmDeleteBtn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .cancelBtn {
+            background-color: #f3f3f3;
+            border: 1px solid #dddbda;
+            color: black;
+        }
+        
+        .confirmDeleteBtn {
+            background-color: #e52d27 !important;
+            color: black !important;
+            border: 1px solid #140302 !important;
+        }
+        
+        /* Add specific style for the delete button in modal */
+        .modal-buttons .confirmDeleteBtn {
+            color: black !important;
+        }
+    </style>
+</apex:page>

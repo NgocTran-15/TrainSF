@@ -1,0 +1,92 @@
+.THIS .viewBtn {
+    background-color: #1589ee;
+    color: white;
+}
+
+.THIS .editBtn {
+    background-color: #ffb75d;
+    color: black;
+}
+
+.THIS .saveBtn {
+    background-color: #4bca81;
+    color: white;
+}
+
+.THIS .cancelBtn {
+    background-color: #dddbda;
+    color: black;
+}
+
+.THIS .slds-form-element_stacked {
+    padding: 0.5rem 0;
+}
+
+.THIS .slds-form__row {
+    margin-bottom: 0.5rem;
+}
+
+.THIS .slds-form-element {
+    margin-bottom: 1rem;
+}
+
+.THIS .slds-form-element__label {
+    color: #706e6b;
+    font-size: 0.75rem;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.THIS .slds-form-element__static {
+    display: inline-block;
+    padding-right: 0.75rem;
+    font-size: 0.875rem;
+}
+
+.THIS .slds-text-align_right {
+    border-top: 1px solid #d8dde6;
+    padding-top: 1rem;
+    margin-top: 1rem;
+}
+
+.THIS lightning:button {
+    padding: 0.5rem 1rem;
+}
+
+.THIS .slds-input,
+.THIS .slds-select {
+    max-width: 100%;
+    height: 32px;
+}
+
+.THIS .slds-form-element_stacked .slds-form-element__control {
+    width: 100%;
+}
+
+.THIS.compact-form-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.THIS .form-title {
+    font-size: 1.5rem;
+    color: #080707;
+    margin-bottom: 1.5rem;
+    font-weight: bold;
+    border-bottom: 2px solid #dddbda;
+    padding-bottom: 0.5rem;
+    text-align: center;
+    width: 100%;
+}
+
+.THIS .form-content {
+    background: #ffffff;
+    padding: 1rem;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.THIS .slds-form-element {
+    margin-bottom: 1rem;
+}

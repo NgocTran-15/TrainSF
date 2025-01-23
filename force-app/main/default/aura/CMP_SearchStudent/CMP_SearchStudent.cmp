@@ -1,0 +1,206 @@
+<aura:component controller="CMP_SearchStudentCtrl" implements="force:appHostable,flexipage:availableForAllPageTypes">
+    <!-- Attributes -->
+    <aura:attribute name="students" type="Object[]"/>
+    <aura:attribute name="pageSize" type="Integer" default="10"/>
+    <aura:attribute name="pageNumber" type="Integer" default="1"/>
+    <aura:attribute name="totalPages" type="Integer" default="0"/>
+    <aura:attribute name="totalRecords" type="Integer" default="0"/>
+    <aura:attribute name="pageNumbers" type="Integer[]"/>
+    <aura:attribute name="selectedAll" type="Boolean" default="false"/>
+    <aura:attribute name="selectedIds" type="List" default="[]"/>
+    <aura:attribute name="genderOptions" type="List" default="[
+        {'label': '--なし--', 'value': ''},
+        {'label': '男性', 'value': 'Male'},
+        {'label': '女性', 'value': 'Female'}
+    ]"/>
+    
+    <!-- Search Filters -->
+    <aura:attribute name="studentCode" type="String"/>
+    <aura:attribute name="searchName" type="String"/>
+    <aura:attribute name="classCode" type="String"/>
+    <aura:attribute name="gender" type="String"/>
+    <aura:attribute name="birthDate" type="Date"/>
+    <aura:attribute name="classOptions" type="List"/>
+    
+    <!-- Add this attribute for delete modal -->
+    <aura:attribute name="showDeleteModal" type="Boolean" default="false"/>
+    <aura:attribute name="deleteId" type="String"/>
+    
+    <!-- Handler -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <!-- Search Form -->
+    <div class="slds-card">
+        <div class="slds-card__header">
+            <div class="slds-grid">
+                <div class="slds-col slds-size_1-of-1">
+                    <div class="search-container slds-grid slds-gutters slds-wrap">
+                        <div class="slds-col slds-size_1-of-6">
+                            <lightning:input label="学生コード" 
+                                           value="{!v.studentCode}"/>
+                        </div>
+                        <div class="slds-col slds-size_1-of-6">
+                            <lightning:input label="氏名" 
+                                           value="{!v.searchName}"/>
+                        </div>
+                        <div class="slds-col slds-size_1-of-6">
+                            <lightning:combobox label="クラス"
+                                              value="{!v.classCode}"
+                                              placeholder="--なし--"
+                                              options="{!v.classOptions}"/>
+                        </div>
+                        <div class="slds-col slds-size_1-of-6">
+                            <lightning:combobox label="性別"
+                                              value="{!v.gender}"
+                                              placeholder="--なし--"
+                                              options="{!v.genderOptions}"/>
+                        </div>
+                        <div class="slds-col slds-size_1-of-6">
+                            <lightning:input type="date" 
+                                           label="生年月日"
+                                           value="{!v.birthDate}"/>
+                        </div>
+                    </div>
+                    
+                    <!-- Buttons -->
+                    <div class="slds-grid slds-gutters slds-m-top_medium">
+                        <div class="slds-col">
+                            <lightning:button label="検索" 
+                                            onclick="{!c.handleSearch}"
+                                            variant="brand"/>
+                            <lightning:button label="作成" 
+                                            onclick="{!c.handleCreate}"/>
+                            <lightning:button label="クリア" 
+                                            onclick="{!c.handleClear}"/>
+                            <lightning:button label="削除" 
+                                            onclick="{!c.handleBulkDelete}"
+                                            variant="destructive"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Data Table -->
+        <div class="slds-card__body">
+            <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                <thead>
+                    <tr class="slds-text-title_caps">
+                        <th class="slds-cell-shrink">
+                            <lightning:input type="checkbox" 
+                                           checked="{!v.selectedAll}"
+                                           onchange="{!c.handleSelectAll}"/>
+                        </th>
+                        <th>学生コード</th>
+                        <th>姓</th>
+                        <th>名</th>
+                        <th>生年月日</th>
+                        <th>性別</th>
+                        <th>クラス</th>
+                        <th>アクション</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <aura:iteration items="{!v.students}" var="student">
+                        <tr>
+                            <td>
+                                <lightning:input type="checkbox" 
+                                               checked="{!student.selected}"
+                                               onchange="{!c.handleCheckboxChange}"
+                                               value="{!student.Id}"/>
+                            </td>
+                            <td>
+                                <a onclick="{!c.handleView}" 
+                                   data-id="{!student.Id}">{!student.StudentCode__c}</a>
+                            </td>
+                            <td>{!student.Lastname__c}</td>
+                            <td>{!student.Firstname__c}</td>
+                            <td>
+                                <lightning:formattedDateTime value="{!student.Birthday__c}" 
+                                                           year="numeric" 
+                                                           month="2-digit" 
+                                                           day="2-digit"/>
+                            </td>
+                            <td>{!student.Gender__c}</td>
+                            <td>{!student.Class_look__r.Name}</td>
+                            <td>
+                                <div class="slds-button-group">
+                                    <lightning:buttonIcon iconName="utility:preview" 
+                                                          alternativeText="表示" 
+                                                          onclick="{!c.handleView}" 
+                                                          value="{!student.Id}" 
+                                                          variant="bare"/>
+                                    <lightning:buttonIcon iconName="utility:edit" 
+                                                          alternativeText="編集" 
+                                                          onclick="{!c.handleEdit}" 
+                                                          value="{!student.Id}" 
+                                                          variant="bare"/>
+                                    <lightning:buttonIcon iconName="utility:delete" 
+                                                          alternativeText="削除" 
+                                                          onclick="{!c.handleDelete}" 
+                                                          value="{!student.Id}" 
+                                                          variant="bare"/>
+                                </div>
+                            </td>
+                        </tr>
+                    </aura:iteration>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        <div class="slds-card__footer">
+            <div class="slds-grid slds-grid_align-center">
+                <lightning:button label="≪" 
+                                onclick="{!c.handleFirst}"
+                                disabled="{!v.pageNumber == 1}"/>
+                <lightning:button label="＜" 
+                                onclick="{!c.handlePrevious}"
+                                disabled="{!v.pageNumber == 1}"/>
+                
+                <aura:iteration items="{!v.pageNumbers}" var="num">
+                    <lightning:button label="{!num}"
+                                    variant="{!num == v.pageNumber ? 'brand' : 'neutral'}"
+                                    onclick="{!c.handlePageChange}"
+                                    value="{!num}"/>
+                </aura:iteration>
+                
+                <lightning:button label="＞" 
+                                onclick="{!c.handleNext}"
+                                disabled="{!v.pageNumber == v.totalPages}"/>
+                <lightning:button label="≫" 
+                                onclick="{!c.handleLast}"
+                                disabled="{!v.pageNumber == v.totalPages}"/>
+            </div>
+            
+            <div class="slds-text-align_center slds-m-top_x-small">
+                Selected: {!v.selectedIds.length} / {!v.totalRecords}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <aura:if isTrue="{!v.showDeleteModal}">
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">確認</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                    <p>選択した学生を削除してもよろしいですか？</p>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning:button label="キャンセル" 
+                                    onclick="{!c.closeDeleteModal}"/>
+                    <lightning:button label="削除" 
+                                    variant="destructive"
+                                    onclick="{!c.confirmDelete}"/>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if>
+    
+    <!-- Add at the top of the component -->
+    <lightning:spinner aura:id="spinner" variant="brand" size="large" class="slds-hide"/>
+</aura:component>

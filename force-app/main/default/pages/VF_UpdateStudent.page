@@ -1,0 +1,38 @@
+<apex:page controller="VF_UpdateStudentCtrl">
+    <h1>Update Student Information</h1>
+    <apex:form>
+        <apex:pageMessages />
+        <apex:pageBlock title="学生情報の編集">
+            <apex:pageBlockSection columns="1">
+                <apex:inputField value="{!student.Lastname__c}" label="姓"/>
+                <apex:inputField value="{!student.Firstname__c}" label="名"/>
+                <apex:inputField value="{!student.Birthday__c}" label="生年月日"/>
+                <apex:inputField value="{!student.Gender__c}" label="性別"/>
+                <apex:inputField value="{!student.Class_look__c}" label="クラス"/>
+                <apex:inputField value="{!student.LearningStatus__c}" label="学習状況"/>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockButtons location="bottom">
+                <apex:commandButton value="キャンセル" action="{!cancel}" immediate="true"/>
+                <apex:commandButton value="保存" action="{!SaveStudent}"/>
+            </apex:pageBlockButtons>
+        </apex:pageBlock>
+    </apex:form>
+
+    <style>
+        .actionBtn {
+            margin: 0 5px !important;
+            padding: 4px 12px !important;
+            border-radius: 4px !important;
+            font-size: 12px !important;
+            color: #000 !important;
+            border: 1px solid #dddbda !important;
+            background-color: #fff !important;
+            cursor: pointer;
+        }
+        
+        .actionBtn:hover {
+            background-color: #f4f6f9 !important;
+        }
+    </style>
+</apex:page>

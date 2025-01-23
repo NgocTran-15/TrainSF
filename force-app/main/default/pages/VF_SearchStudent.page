@@ -1,0 +1,570 @@
+<apex:page controller="VF_SearchStudentCtrl" docType="html-5.0">
+    <apex:slds />
+    
+    <apex:form id="searchForm">
+        <!-- Add hidden input inside form -->
+        <apex:inputHidden id="selectedStudentId" value="{!selectedStudentId}"/>
+        
+        <apex:pageBlock title="Search Student">
+            <!-- Search Filters -->
+            <div class="search-container">
+                <div class="search-field">
+                    <label>学生コード</label>
+                    <apex:inputText value="{!studentCode}"/>
+                </div>
+                <div class="search-field">
+                    <label>氏名</label>
+                    <apex:inputText value="{!searchName}"/>
+                </div>
+                <div class="search-field">
+                    <label>クラス</label>
+                    <apex:selectList value="{!classCode}" size="1">
+                        <apex:selectOptions value="{!classOptions}"/>
+                    </apex:selectList>
+                </div>
+                <div class="search-field">
+                    <label>性別</label>
+                    <apex:selectList value="{!gender}" size="1">
+                        <apex:selectOption itemValue="" itemLabel="--なし--"/>
+                        <apex:selectOption itemValue="Male" itemLabel="男性"/>
+                        <apex:selectOption itemValue="Female" itemLabel="女性"/>
+                    </apex:selectList>
+                </div>
+                <div class="search-field">
+                    <label>生年月日</label>
+                    <apex:input type="date" value="{!birthDate}"/>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="buttonContainer">
+                <apex:commandButton value="検索" 
+                                  action="{!search}" 
+                                  reRender="searchForm,results,paginationPanel"
+                                  status="loading"
+                                  oncomplete="restoreCheckboxStates()"/>
+                <apex:commandButton value="作成" 
+                                  action="{!createStudent}" 
+                                  styleClass="actionBtn createBtn"/>
+                <apex:commandButton value="クリア" 
+                                  action="{!clearFilters}" 
+                                  reRender="searchForm,results,paginationPanel" 
+                                  styleClass="actionBtn clearBtn"/>
+                <apex:commandButton value="削除" 
+                                  onclick="return confirmBulkDelete();"
+                                  action="{!deleteSelectedStudents}"
+                                  reRender="results,paginationPanel"
+                                  styleClass="actionBtn deleteBtn"/>
+            </div>
+
+            <!-- Results Table -->
+            <apex:pageBlockTable value="{!studentWrappers}" var="wrapper" id="results">
+                <apex:column >
+                    <apex:facet name="header">
+                        <apex:inputCheckbox onclick="toggleAll(this)" styleClass="headerCheckbox"/>
+                    </apex:facet>
+                    <apex:inputCheckbox value="{!wrapper.selected}" styleClass="rowCheckbox" 
+                                        onclick="handleSingleCheckbox(this)"
+                                        html-data-record-id="{!wrapper.student.Id}"/>
+                </apex:column>
+                <apex:column headerValue="学生コード">
+                    <apex:outputLink value="/apex/VF_DetailStudent?id={!wrapper.student.Id}">
+                        {!wrapper.student.StudentCode__c}
+                    </apex:outputLink>
+                </apex:column>
+                <apex:column value="{!wrapper.student.Lastname__c}" headerValue="姓"/>
+                <apex:column value="{!wrapper.student.Firstname__c}" headerValue="名"/>
+                <apex:column value="{!wrapper.student.Birthday__c}" headerValue="生年月日"/>
+                <apex:column value="{!wrapper.student.Gender__c}" headerValue="性別"/>
+                <apex:column headerValue="クラス">
+                    <apex:outputLink value="/apex/VF_DetailStudent?id={!wrapper.student.Id}">
+                        {!wrapper.student.Class_look__r.Name}
+                    </apex:outputLink>
+                </apex:column>
+                
+                <!-- Action column -->
+                <apex:column headerValue="アクション" styleClass="actionColumn">
+                    <div class="actionButtonGroup">
+                        <apex:commandLink action="{!viewStudent}" styleClass="actionIcon viewIcon" title="表示">
+                            表示
+                            <apex:param name="studentId" value="{!wrapper.student.Id}" assignTo="{!selectedStudentId}"/>
+                        </apex:commandLink>
+                        
+                        <apex:commandLink action="{!URLFOR('/apex/VF_UpdateStudent', null, [id=wrapper.student.Id])}" 
+                                         styleClass="actionIcon editIcon" title="編集">
+                            編集
+                        </apex:commandLink>
+
+                        <a href="javascript:void(0);" 
+                           onclick="openDeleteModal('{!wrapper.student.Id}');" 
+                           class="actionIcon deleteIcon">
+                            削除
+                        </a>
+                    </div>
+                </apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlock>
+
+        <!-- Selection info -->
+        <div class="selection-info">
+            Selected: <span id="selectedCount">0</span> / <span id="totalCount">{!totalRecords}</span>
+        </div>
+
+        <!-- Pagination -->
+        <div class="paginationContainer" id="paginationPanel">
+            <div class="paginationWrapper">
+                <apex:commandButton value="≪" 
+                                  action="{!first}" 
+                                  disabled="{!NOT(hasPrevious)}" 
+                                  styleClass="pageButton {!IF(pageNumber==1, 'disabled', '')}" 
+                                  reRender="searchForm,results,paginationPanel"
+                                  oncomplete="restoreCheckboxStates()"
+                                  status="loading"/>
+                
+                <apex:commandButton value="＜" 
+                                  action="{!previous}" 
+                                  disabled="{!pageNumber==1}"
+                                  styleClass="pageButton {!IF(pageNumber==1, 'disabled', '')}" 
+                                  reRender="searchForm,results,paginationPanel"
+                                  oncomplete="restoreCheckboxStates()"
+                                  status="loading"/>
+                
+                <apex:repeat value="{!pageNumbers}" var="num">
+                    <apex:commandButton value="{!num}" 
+                                      action="{!goToPage}" 
+                                      disabled="{!pageNumber==num}"
+                                      styleClass="pageButton {!IF(pageNumber==num, 'disabled', '')}"
+                                      reRender="searchForm,results,paginationPanel"
+                                      oncomplete="restoreCheckboxStates()"
+                                      status="loading">
+                        <apex:param name="pageNum" value="{!num}" assignTo="{!selectedPage}"/>
+                    </apex:commandButton>
+                </apex:repeat>
+                
+                <apex:commandButton value="＞" 
+                                  action="{!next}" 
+                                  disabled="{!NOT(hasNext)}" 
+                                  styleClass="pageButton {!IF(pageNumber==totalPages, 'disabled', '')}" 
+                                  reRender="searchForm,results,paginationPanel"
+                                  oncomplete="restoreCheckboxStates()"
+                                  status="loading"/>
+                
+                <apex:commandButton value="≫" 
+                                  action="{!last}" 
+                                  disabled="{!NOT(hasNext)}" 
+                                  styleClass="pageButton {!IF(pageNumber==totalPages, 'disabled', '')}" 
+                                  reRender="searchForm,results,paginationPanel"
+                                  oncomplete="restoreCheckboxStates()"
+                                  status="loading"/>
+            </div>
+        </div>
+
+        <!-- Delete Modal -->
+        <div id="deleteModal" class="modal">
+            <div class="modal-content">
+                <h2>確認</h2>
+                <p>選択した学生を削除してもよろしいですか？</p>
+                <div class="modal-buttons">
+                    <button type="button" onclick="closeModal()" class="cancelBtn">キャンセル</button>
+                    <apex:commandButton value="削除" 
+                                      action="{!deleteStudent}"
+                                      styleClass="confirmDeleteBtn"
+                                      reRender="searchForm,results,paginationPanel,messages"
+                                      oncomplete="closeModal()"/>
+                </div>
+            </div>
+        </div>
+
+        <apex:inputHidden value="{!studentToDelete}" id="studentToDeleteField"/>
+    </apex:form>
+
+    <!-- Loading Status -->
+    <apex:actionStatus id="loading">
+        <apex:facet name="start">
+            <div class="loading">処理中...</div>
+        </apex:facet>
+    </apex:actionStatus>
+
+    <script>
+        // Global variables
+        var selectedRecordsMap = {};  // Store selected record IDs for each page
+        var totalSelectedRecords = 0; // Total selected records across all pages
+        var currentPageSize = 0;      // Number of records on current page
+        var headerCheckboxState = {};  // Store state of header checkbox for each page
+        var lastVisitedPage = null;   // Store the last visited page number
+
+        /**
+         * Handles the "Select All" checkbox for current page
+         */
+        function toggleAll(headerCheckbox) {
+            var checkboxes = document.getElementsByClassName('rowCheckbox');
+            var currentPage = {!pageNumber};
+            currentPageSize = checkboxes.length;
+
+            // Initialize array for current page if not exists
+            if (!selectedRecordsMap[currentPage]) {
+                selectedRecordsMap[currentPage] = [];
+            }
+
+            // Update selections for current page only
+            for (var i = 0; i < checkboxes.length; i++) {
+                var checkbox = checkboxes[i];
+                var recordId = checkbox.getAttribute('data-record-id');
+                checkbox.checked = headerCheckbox.checked;
+                
+                var index = selectedRecordsMap[currentPage].indexOf(recordId);
+                if (headerCheckbox.checked && index === -1) {
+                    // Add to selected records if not already present
+                    selectedRecordsMap[currentPage].push(recordId);
+                } else if (!headerCheckbox.checked && index > -1) {
+                    // Remove from selected records if present
+                    selectedRecordsMap[currentPage].splice(index, 1);
+                }
+            }
+
+            // Store header checkbox state for current page only
+            headerCheckboxState[currentPage] = headerCheckbox.checked;
+            
+            updateSelectionCount();
+        }
+
+        /**
+         * Handles individual checkbox selection
+         */
+        function handleSingleCheckbox(checkbox) {
+            var currentPage = {!pageNumber};
+            var recordId = checkbox.getAttribute('data-record-id');
+
+            // Initialize array for current page if not exists
+            if (!selectedRecordsMap[currentPage]) {
+                selectedRecordsMap[currentPage] = [];
+            }
+
+            var index = selectedRecordsMap[currentPage].indexOf(recordId);
+            if (checkbox.checked && index === -1) {
+                selectedRecordsMap[currentPage].push(recordId);
+            } else if (!checkbox.checked && index > -1) {
+                selectedRecordsMap[currentPage].splice(index, 1);
+            }
+
+            // Update header checkbox state for current page only
+            var headerCheckbox = document.querySelector('.headerCheckbox');
+            var checkboxes = document.getElementsByClassName('rowCheckbox');
+            var allChecked = true;
+            
+            for (var i = 0; i < checkboxes.length; i++) {
+                if (!checkboxes[i].checked) {
+                    allChecked = false;
+                    break;
+                }
+            }
+            
+            if (headerCheckbox) {
+                headerCheckbox.checked = allChecked;
+                headerCheckboxState[currentPage] = allChecked;
+            }
+
+            updateSelectionCount();
+        }
+
+        /**
+         * Restores checkbox states when changing pages
+         */
+        function restoreCheckboxStates() {
+            var currentPage = {!pageNumber};
+            var checkboxes = document.getElementsByClassName('rowCheckbox');
+            currentPageSize = checkboxes.length;
+            
+            // Initialize array for current page if not exists
+            if (!selectedRecordsMap[currentPage]) {
+                selectedRecordsMap[currentPage] = [];
+            }
+
+            // Get header checkbox
+            var headerCheckbox = document.querySelector('.headerCheckbox');
+            
+            // Reset checkboxes based on stored state for current page
+            var allChecked = true;
+            for (var i = 0; i < checkboxes.length; i++) {
+                var checkbox = checkboxes[i];
+                var recordId = checkbox.getAttribute('data-record-id');
+                
+                checkbox.checked = selectedRecordsMap[currentPage] && 
+                                  selectedRecordsMap[currentPage].includes(recordId);
+                
+                if (!checkbox.checked) {
+                    allChecked = false;
+                }
+            }
+
+            // Update header checkbox based on current page state only
+            if (headerCheckbox) {
+                headerCheckbox.checked = allChecked;
+                headerCheckboxState[currentPage] = allChecked;
+            }
+
+            updateSelectionCount();
+        }
+
+        /**
+         * Updates the selection count display
+         */
+        function updateSelectionCount() {
+            var selectedCountSpan = document.getElementById('selectedCount');
+            if (selectedCountSpan) {
+                var total = 0;
+                // Sum up selections from all pages
+                for (var page in selectedRecordsMap) {
+                    if (selectedRecordsMap[page]) {
+                        total += selectedRecordsMap[page].length;
+                    }
+                }
+                selectedCountSpan.textContent = total;
+            }
+        }
+
+        // Initialize when page loads
+        window.onload = function() {
+            if (!selectedRecordsMap) {
+                selectedRecordsMap = {};
+            }
+            if (!headerCheckboxState) {
+                headerCheckboxState = {};
+            }
+            currentPageSize = document.getElementsByClassName('rowCheckbox').length;
+            restoreCheckboxStates();
+        }
+
+        function confirmSingleDelete(studentId) {
+            document.getElementById('deleteModal').style.display = 'block';
+            return false;
+        }
+        
+        function confirmBulkDelete() {
+            // Kiểm tra xem có bản ghi nào được chọn không
+            var hasSelection = Array.from(document.getElementsByClassName('rowCheckbox'))
+                                   .some(cb => cb.checked);
+            
+            if(!hasSelection) {
+                alert('削除する学生を選択してください。');
+                return false;
+            }
+            
+            document.getElementById('deleteModal').style.display = 'block';
+            return false;
+        }
+        
+        function closeModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            var modal = document.getElementById('deleteModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+        function openDeleteModal(studentId) {
+            console.log('Opening modal for student:', studentId); // Debug log
+            var hiddenField = document.querySelector('[id$=studentToDeleteField]');
+            hiddenField.value = studentId;
+            document.getElementById('deleteModal').style.display = 'block';
+        }
+    </script>
+
+    <style>
+        /* Common button styles */
+        .actionBtn {
+            margin: 0 5px !important;
+            padding: 4px 12px !important;
+            border-radius: 4px !important;
+            font-size: 12px !important;
+            color: #000 !important;
+            border: 1px solid #dddbda !important;
+            background-color: #fff !important;
+            cursor: pointer;
+        }
+        
+        .actionBtn:hover {
+            background-color: #f4f6f9 !important;
+        }
+
+        /* Action column styles */
+        .actionColumn {
+            white-space: nowrap;
+            width: 200px;
+        }
+        
+        .actionButtonGroup {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        /* Pagination styles */
+        .paginationContainer {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        
+        .paginationWrapper {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+        
+        .pageButton {
+            padding: 5px 10px !important;
+            margin: 0 2px !important;
+            border: 1px solid #dddbda !important;
+            border-radius: 4px !important;
+            background-color: white !important;
+            color: #000 !important;
+            cursor: pointer;
+        }
+
+        /* Checkbox alignment */
+        .headerCheckbox, .rowCheckbox {
+            vertical-align: middle !important;
+        }
+
+        /* Search container styles */
+        .search-container {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            padding: 10px;
+            align-items: flex-start;
+        }
+
+        .search-field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .search-field label {
+            font-size: 12px;
+            color: #514f4d;
+        }
+
+        .search-field input,
+        .search-field select {
+            padding: 4px;
+            border: 1px solid #dddbda;
+            border-radius: 4px;
+            min-width: 120px;
+        }
+
+        .selection-info {
+            margin: 20px 0 10px;
+            padding: 5px 10px;
+            font-size: 13px;
+            color: #514f4d;
+            background-color: #f3f3f3;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        /* Action icons styles */
+        .actionIcon {
+            min-width: 50px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none !important;
+            font-size: 12px;
+            padding: 0 10px;
+        }
+
+        /* View button - Blue */
+        .viewIcon, .viewIcon:link, .viewIcon:visited {
+            background-color: #1589ee;
+            border: 1px solid #1589ee;
+            color: white !important;
+        }
+        .viewIcon:hover {
+            background-color: #0070d2;
+            border-color: #0070d2;
+        }
+
+        /* Edit button - Orange */
+        .editIcon, .editIcon:link, .editIcon:visited {
+            background-color: #ff9900;
+            border: 1px solid #ff9900;
+            color: white !important;
+        }
+        .editIcon:hover {
+            background-color: #ff8800;
+            border-color: #ff8800;
+        }
+
+        /* Delete button - Red */
+        .deleteIcon, .deleteIcon:link, .deleteIcon:visited {
+            background-color: #e52d27;
+            border: 1px solid #e52d27;
+            color: white !important;
+        }
+        .deleteIcon:hover {
+            background-color: #cc0000;
+            border-color: #cc0000;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 400px;
+            text-align: center;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .cancelBtn, .confirmDeleteBtn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .cancelBtn {
+            background-color: #f3f3f3;
+            border: 1px solid #dddbda;
+            color: black;
+        }
+        
+        .confirmDeleteBtn {
+            background-color: #e52d27 !important;
+            color: white !important;
+            border: 1px solid #cc0000 !important;
+        }
+
+        .dateFormat {
+            display: none;
+        }
+    </style>
+</apex:page>

@@ -1,0 +1,96 @@
+<apex:page controller="VF_DetailStudentCtrl" docType="html-5.0">
+    <apex:slds />
+    <apex:form >
+        <apex:pageMessages />
+        
+        <apex:pageBlock title="Student Details">
+            <!-- Action Buttons -->
+            <apex:pageBlockButtons location="top">
+                <apex:commandButton value="View" action="{!toggleEdit}" rendered="{!isEdit}" 
+                                  reRender="studentDetails,buttonSection"
+                                  styleClass="actionBtn viewBtn"/>
+                <apex:commandButton value="Edit" action="{!toggleEdit}" rendered="{!!isEdit}" 
+                                  reRender="studentDetails,buttonSection"
+                                  styleClass="actionBtn editBtn"/>
+                <apex:commandButton value="Save" action="{!saveChanges}" rendered="{!isEdit}" 
+                                  reRender="studentDetails,buttonSection"
+                                  styleClass="actionBtn saveBtn"/>
+                <apex:commandButton value="Cancel" action="{!cancelEdit}" rendered="{!isEdit}" 
+                                  reRender="studentDetails,buttonSection"
+                                  styleClass="actionBtn cancelBtn"/>
+                <apex:commandButton value="Back to List" action="{!backToList}"
+                                  styleClass="actionBtn backBtn"/>
+            </apex:pageBlockButtons>
+            
+            <!-- Student Details Section -->
+            <apex:pageBlockSection id="studentDetails" columns="2">
+                <apex:outputField value="{!student.StudentCode__c}" rendered="{!!isEdit}"/>
+                <apex:inputField value="{!student.StudentCode__c}" rendered="{!isEdit}"/>
+                
+                <apex:outputField value="{!student.Firstname__c}" rendered="{!!isEdit}"/>
+                <apex:inputField value="{!student.Firstname__c}" rendered="{!isEdit}"/>
+                
+                <apex:outputField value="{!student.Lastname__c}" rendered="{!!isEdit}"/>
+                <apex:inputField value="{!student.Lastname__c}" rendered="{!isEdit}"/>
+                    
+                <apex:outputField value="{!student.Gender__c}" rendered="{!!isEdit}"/>
+                <apex:inputField value="{!student.Gender__c}" rendered="{!isEdit}"/>
+                
+                <apex:outputField value="{!student.Birthday__c}" rendered="{!!isEdit}"/>
+                <apex:inputField value="{!student.Birthday__c}" rendered="{!isEdit}"/>
+                
+                <apex:outputField value="{!student.Class_look__c}" rendered="{!!isEdit}"/>
+                <apex:inputField value="{!student.Class_look__c}" rendered="{!isEdit}"/>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+    
+    <style>
+        /* Common button styles */
+        .actionBtn {
+            margin: 0 5px !important;
+            padding: 4px 12px !important;
+            border-radius: 4px !important;
+            font-size: 12px !important;
+            border: 1px solid #dddbda !important;
+            cursor: pointer;
+        }
+
+        /* View button */
+        .viewBtn {
+            background-color: #1589ee !important;
+            color: white !important;
+            border-color: #1589ee !important;
+        }
+
+        /* Edit button */
+        .editBtn {
+            background-color: #ffb75d !important;
+            color: black !important;
+            border-color: #ffb75d !important;
+        }
+
+        /* Save button */
+        .saveBtn {
+            background-color: #4bca81 !important;
+            color: white !important;
+            border-color: #4bca81 !important;
+        }
+
+        /* Cancel button */
+        .cancelBtn {
+            background-color: #dddbda !important;
+            color: black !important;
+            border-color: #dddbda !important;
+        }
+
+
+
+        /* Back button */
+        .backBtn {
+            background-color: white !important;
+            color: black !important;
+            border-color: #dddbda !important;
+        }
+    </style>
+</apex:page>

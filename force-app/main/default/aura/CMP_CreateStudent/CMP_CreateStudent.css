@@ -1,0 +1,55 @@
+.THIS.compact-form-container {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.THIS .form-title {
+    font-size: 1.5rem;
+    color: #080707;
+    margin-bottom: 1.5rem;
+    font-weight: bold;
+    border-bottom: 2px solid #dddbda;
+    padding-bottom: 0.5rem;
+    text-align: center; /* Thêm dòng này */
+    width: 100%; /* Đảm bảo tiêu đề chiếm full width */
+}
+
+.THIS .form-content {
+    background: #ffffff;
+    padding: 1rem;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.THIS .slds-form-element {
+    margin-bottom: 1rem;
+}
+
+.THIS .compact-input .slds-form-element__label,
+.THIS .compact-select .slds-form-element__label {
+    font-size: 0.875rem;
+    color: #3e3e3c;
+}
+
+.THIS .compact-input .slds-input,
+.THIS .compact-select .slds-select {
+    height: 36px;
+    font-size: 0.875rem;
+}
+
+.THIS .button-container {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    justify-content: flex-end;
+}
+
+.THIS .cancel-btn {
+    background-color: #f3f3f3;
+    color: #080707;
+}
+
+.THIS .submit-btn {
+    min-width: 80px;
+}

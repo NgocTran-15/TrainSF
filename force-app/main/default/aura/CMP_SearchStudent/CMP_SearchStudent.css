@@ -1,0 +1,10 @@
+.THIS {
+}
+
+.THIS .slds-combobox {
+    min-width: 100%;
+}
+
+.THIS .slds-combobox__input {
+    width: 100%;
+}

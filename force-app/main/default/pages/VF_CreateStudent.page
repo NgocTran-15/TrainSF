@@ -1,0 +1,48 @@
+<apex:page controller="VF_CreateStudentCtrl">
+    <h1>Create New Student</h1>
+    <apex:form >
+        <apex:pageMessages id="messages" />
+        <apex:pageBlock title="新規学生">
+            <apex:pageBlockSection columns="1"> 
+                <apex:inputField value="{!student.Lastname__c}" label="姓"/>
+                <apex:inputField value="{!student.Firstname__c}" label="名"/>
+                <apex:inputField value="{!student.Birthday__c}" label="生年月日"/>
+                <apex:inputField value="{!student.Gender__c}" label="性別"/>
+                <apex:inputField value="{!student.Class_look__c}" label="クラス"/>
+                <apex:inputField value="{!student.LearningStatus__c}" label="学習状況"/>
+            </apex:pageBlockSection>
+
+            <apex:pageBlockButtons location="bottom">
+                <apex:commandButton value="キャンセル" action="{!cancel}" immediate="true"/>
+                <apex:commandButton value="保存" action="{!save}" 
+                                  oncomplete="hideMessage();"
+                                  rerender="messages"/>
+            </apex:pageBlockButtons>
+        </apex:pageBlock>
+    </apex:form>
+
+    <script>
+        function hideMessage() {
+            var successMsg = document.querySelector('.message.confirmM3');
+            if (successMsg) {
+                setTimeout(function() {
+                    successMsg.style.display = 'none';
+                }, 3000);
+            }
+        }
+    </script>
+
+    <style>
+        .dateFormat {
+            display: none;
+        }
+        /* Thêm style cho thông báo */
+        .message.confirmM3 {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            background-color: #4CAF50;
+            color: white;
+        }
+    </style>
+</apex:page>
