@@ -1,78 +1,72 @@
-<aura:component controller="CMP_DetailStudentCtrl" implements="force:hasRecordId,flexipage:availableForAllPageTypes">
-    <aura:attribute name="student" type="Student__c"/>
-    <aura:attribute name="recordId" type="String" default="a00dL00000ZK8yBQAT"/>
-    <aura:attribute name="isEdit" type="Boolean" default="false"/>
-    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes">
+    <aura:attribute name="student" type="Object" default="{}"/>
+    <aura:attribute name="closeModal" type="Aura.Action"/>
 
-    <div class="compact-form-container">
-        <h1 class="form-title">学生の詳細</h1>
-        
-        <div class="form-content">
-            <lightning:messages />
-            <div class="slds-grid slds-wrap">
-                <!-- Left Column -->
-                <div class="slds-col slds-size_1-of-2">
-                    <div class="slds-form-element slds-m-bottom_small">
-                        <span class="slds-form-element__label">学生コード</span>
-                        <div class="slds-form-element__control">
-                            <span class="slds-form-element__static">{!v.student.StudentCode__c}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="slds-form-element slds-m-bottom_small">
-                        <span class="slds-form-element__label">姓</span>
-                        <div class="slds-form-element__control">
-                            <span class="slds-form-element__static">{!v.student.Lastname__c}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="slds-form-element slds-m-bottom_small">
-                        <span class="slds-form-element__label">名</span>
-                        <div class="slds-form-element__control">
-                            <span class="slds-form-element__static">{!v.student.Firstname__c}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="slds-form-element slds-m-bottom_small">
-                        <span class="slds-form-element__label">生年月日</span>
-                        <div class="slds-form-element__control">
-                            <span class="slds-form-element__static">
-                                <lightning:formattedDateTime value="{!v.student.Birthday__c}" year="numeric" month="2-digit" day="2-digit"/>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Right Column -->
-                <div class="slds-col slds-size_1-of-2">
-                    <div class="slds-form-element slds-m-bottom_small">
-                        <span class="slds-form-element__label">性別</span>
-                        <div class="slds-form-element__control">
-                            <span class="slds-form-element__static">{!v.student.Gender__c}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="slds-form-element slds-m-bottom_small">
-                        <span class="slds-form-element__label">クラス</span>
-                        <div class="slds-form-element__control">
-                            <span class="slds-form-element__static">{!v.student.Class_look__r.Name}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="slds-form-element slds-m-bottom_small">
-                        <span class="slds-form-element__label">Status</span>
-                        <div class="slds-form-element__control">
-                            <span class="slds-form-element__static">{!v.student.LearningStatus__c}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="slds-m-top_medium slds-text-align_right">
-                <lightning:button label="閉じる" 
-                                onclick="{!c.handleClose}" 
-                                class="slds-m-right_x-small"/>
+    <div class="slds-form">
+        <!-- Debug info -->
+        <div class="slds-text-color_weak slds-text-body_small slds-m-bottom_small">
+            {!v.student.StudentCode__c ? 'Data loaded' : 'Loading...'}
+        </div>
+
+        <!-- Form fields -->
+        <div class="slds-form-element slds-m-bottom_small">
+            <label class="slds-form-element__label">学生コード</label>
+            <div class="slds-form-element__control">
+                <div class="slds-form-element__static">{!v.student.StudentCode__c}</div>
             </div>
         </div>
+        
+        <div class="slds-form-element slds-m-bottom_small">
+            <label class="slds-form-element__label">姓</label>
+            <div class="slds-form-element__control">
+                <div class="slds-form-element__static">{!v.student.Lastname__c}</div>
+            </div>
+        </div>
+        
+        <div class="slds-form-element slds-m-bottom_small">
+            <label class="slds-form-element__label">名</label>
+            <div class="slds-form-element__control">
+                <div class="slds-form-element__static">{!v.student.Firstname__c}</div>
+            </div>
+        </div>
+        
+        <div class="slds-form-element slds-m-bottom_small">
+            <label class="slds-form-element__label">生年月日</label>
+            <div class="slds-form-element__control">
+                <div class="slds-form-element__static">
+                    <lightning:formattedDateTime value="{!v.student.Birthday__c}" 
+                                               year="numeric" 
+                                               month="2-digit" 
+                                               day="2-digit"/>
+                </div>
+            </div>
+        </div>
+        
+        <div class="slds-form-element slds-m-bottom_small">
+            <label class="slds-form-element__label">性別</label>
+            <div class="slds-form-element__control">
+                <div class="slds-form-element__static">{!v.student.Gender__c}</div>
+            </div>
+        </div>
+        
+        <div class="slds-form-element slds-m-bottom_small">
+            <label class="slds-form-element__label">クラス</label>
+            <div class="slds-form-element__control">
+                <div class="slds-form-element__static">{!v.student.Class_look__r.Name}</div>
+            </div>
+        </div>
+        
+        <div class="slds-form-element slds-m-bottom_small">
+            <label class="slds-form-element__label">ステータス</label>
+            <div class="slds-form-element__control">
+                <div class="slds-form-element__static">{!v.student.LearningStatus__c}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slds-modal__footer">
+        <lightning:button label="閉じる"
+                         onclick="{!c.handleClose}"
+                         variant="neutral"/>
     </div>
 </aura:component>

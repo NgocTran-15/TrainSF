@@ -1,49 +1,44 @@
 ({
     doInit : function(component, event, helper) {
-        helper.loadStudent(component);
+        console.log('Init Student:', component.get("v.student"));
         helper.loadPicklistValues(component);
     },
     
     handleFieldChange : function(component, event, helper) {
-        var selectedValue = event.getSource().get("v.value");
-        console.log('Field changed:', selectedValue);
+        var fieldName = event.getSource().get("v.fieldName");
+        var value = event.getSource().get("v.value");
+        console.log('Field changed:', fieldName, value);
         
-        // Avoid unnecessary updates that could trigger the change event again
-        // Example: If you're updating the same attribute, ensure it doesn't cause a loop
+        // Update the student object
+        var student = component.get("v.student");
+        student[fieldName] = value;
+        component.set("v.student", student);
     },
     
     handleSave : function(component, event, helper) {
-        // Show spinner hoặc loading state
-        component.set("v.showSpinner", true);
+        var student = component.get("v.student");
+        console.log('Saving student:', student);
         
-        var action = component.get("c.saveStudent");
+        var action = component.get("c.updateStudent");
         action.setParams({
-            student: component.get("v.student")
+            student: student
         });
         
         action.setCallback(this, function(response) {
-            // Hide spinner
-            component.set("v.showSpinner", false);
-            
             var state = response.getState();
             if (state === "SUCCESS") {
-                // Hiển thị thông báo thành công
-                helper.showToast('Success', 'Student updated successfully', 'success');
-                
-                // Chuyển hướng về trang search
-                window.setTimeout(
-                    $A.getCallback(function() {
-                        var navEvt = $A.get("e.force:navigateToComponent");
-                        navEvt.setParams({
-                            componentDef: "c:CMP_SearchStudent"
-                        });
-                        navEvt.fire();
-                    }), 1000
-                );
+                helper.showToast('Success', '学生が正常に更新されました。', 'success');
+                var closeModal = component.get("v.closeModal");
+                if (closeModal) {
+                    $A.enqueueAction(closeModal);
+                }
             } else if (state === "ERROR") {
                 var errors = response.getError();
-                console.error("Error saving student: ", errors);
-                helper.showToast('Error', 'Error updating student', 'error');
+                if (errors && errors[0] && errors[0].message) {
+                    helper.showToast('Error', errors[0].message, 'error');
+                } else {
+                    helper.showToast('Error', '更新中にエラーが発生しました。', 'error');
+                }
             }
         });
         
@@ -51,11 +46,16 @@
     },
     
     handleCancel : function(component, event, helper) {
-        // Navigate back to the search student page
-        var navEvt = $A.get("e.force:navigateToComponent");
-        navEvt.setParams({
-            componentDef: "c:CMP_SearchStudent" // Đảm bảo rằng tên component là chính xác
-        });
-        navEvt.fire();
+        var onclose = component.get("v.onclose");
+        if (onclose) {
+            onclose.fire(); // Fire the onclose event to close the modal
+        }
+    },
+    
+    handleClose : function(component, event, helper) {
+        var closeModal = component.get("v.closeModal");
+        if (closeModal) {
+            $A.enqueueAction(closeModal);
+        }
     }
 })

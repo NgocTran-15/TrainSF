@@ -25,37 +25,73 @@
     },
     
     handleCreate : function(component, event, helper) {
-        var navEvt = $A.get("e.force:navigateToComponent");
-        navEvt.setParams({
-            componentDef: "c:CMP_CreateStudent"
-        });
-        navEvt.fire();
+        component.set("v.showCreateModal", true);
     },
     
-    handleView : function(component, event, helper) {
-        var studentId = event.getSource().get("v.value");
-        // Navigate to detail page
-        var navEvt = $A.get("e.force:navigateToComponent");
-        navEvt.setParams({
-            componentDef: "c:CMP_DetailStudent",
-            componentAttributes: {
-                recordId: studentId
+    openDetailModal: function(component, event, helper) {
+        try {
+            var studentId = event.getSource().get("v.value");
+            console.log('Opening detail modal for student ID:', studentId);
+            
+            if (!studentId) {
+                console.error('No student ID found');
+                return;
             }
-        });
-        navEvt.fire();
+            
+            var action = component.get("c.getStudent");
+            action.setParams({ recordId: studentId });
+            
+            action.setCallback(this, function(response) {
+                var state = response.getState();
+                console.log('Response state:', state);
+                
+                if (state === "SUCCESS") {
+                    var student = response.getReturnValue();
+                    if (student) {
+                        console.log('Student found:', student);
+                        component.set("v.selectedStudent", student);
+                        component.set("v.showViewModal", true);
+                    } else {
+                        helper.showToast('Error', '学生データが見つかりません。', 'error');
+                    }
+                } else {
+                    console.error('Error:', response.getError());
+                    helper.showToast('Error', '学生データの取得に失敗しました。', 'error');
+                }
+            });
+            
+            $A.enqueueAction(action);
+        } catch (error) {
+            console.error('Error in openDetailModal:', error);
+            helper.showToast('Error', '予期せぬエラーが発生しました。', 'error');
+        }
     },
     
     handleEdit : function(component, event, helper) {
         var studentId = event.getSource().get("v.value");
-        // Navigate to edit page
-        var navEvt = $A.get("e.force:navigateToComponent");
-        navEvt.setParams({
-            componentDef: "c:CMP_UpdateStudent",
-            componentAttributes: {
-                recordId: studentId
+        console.log('Edit Student ID:', studentId);
+        
+        var action = component.get("c.getStudent");
+        action.setParams({
+            recordId: studentId
+        });
+        
+        action.setCallback(this, function(response) {
+            var state = response.getState();
+            if (state === "SUCCESS") {
+                var student = response.getReturnValue();
+                console.log('Retrieved Student for Edit:', student);
+                if (student) {
+                    component.set("v.selectedStudent", student);
+                    component.set("v.showEditModal", true);
+                }
+            } else {
+                console.error('Error:', response.getError());
+                helper.showToast('Error', 'Failed to retrieve student details', 'error');
             }
         });
-        navEvt.fire();
+        
+        $A.enqueueAction(action);
     },
     
     handleDelete : function(component, event, helper) {
@@ -167,5 +203,29 @@
         var pageNumber = parseInt(event.getSource().get("v.value"));
         component.set("v.pageNumber", pageNumber);
         helper.search(component);
+    },
+    
+    closeCreateModal : function(component, event, helper) {
+        component.set("v.showCreateModal", false);
+    },
+    
+    closeViewModal : function(component, event, helper) {
+        component.set("v.showViewModal", false);
+        component.set("v.selectedStudent", null);
+    },
+    
+    closeEditModal : function(component, event, helper) {
+        component.set("v.showEditModal", false);
+        component.set("v.selectedStudent", null);
+        // Refresh the student list after editing
+        helper.search(component);
+    },
+    
+    closeDetailStudentModal : function(component, event, helper) {
+        component.set("v.isDetailStudentModalOpen", false);
+    },
+    
+    handleCloseModal : function(component, event, helper) {
+        component.set("v.showCreateModal", false);
     }
 })

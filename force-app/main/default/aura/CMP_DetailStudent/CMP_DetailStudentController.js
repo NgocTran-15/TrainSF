@@ -1,10 +1,7 @@
 ({
     doInit: function(component, event, helper) {
-        // Set recordId manually if not provided through implementation
-        if (!component.get("v.recordId")) {
-            component.set("v.recordId", "a00dL00000ZK8yBQAT");
-        }
-        helper.loadStudent(component);
+        // Không cần gọi getStudentDetails vì data đã được truyền qua attribute
+        console.log('Detail Student Init:', component.get("v.student"));
     },
 
     handleEdit: function(component, event, helper) {
@@ -23,10 +20,9 @@
     },
 
     handleClose: function(component, event, helper) {
-        var navEvt = $A.get("e.force:navigateToComponent");
-        navEvt.setParams({
-            componentDef: "c:CMP_SearchStudent"
-        });
-        navEvt.fire();
+        var closeModal = component.get("v.closeModal");
+        if (closeModal) {
+            $A.enqueueAction(closeModal);
+        }
     }
 })

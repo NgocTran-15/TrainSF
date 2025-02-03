@@ -1,21 +1,12 @@
 <aura:component controller="CMP_UpdateStudentCtrl" 
                implements="force:appHostable,flexipage:availableForAllPageTypes">    
-    <aura:attribute name="student" type="Object" default="{ 
-        'sobjectType': 'Student__c',
-        'Lastname__c': '',
-        'Firstname__c': '',
-        'Birthday__c': '',
-        'Gender__c': '',
-        'Class_look__c': '',
-        'LearningStatus__c': ''
-    }"/>
+    <aura:attribute name="student" type="Object"/>
+    <aura:attribute name="closeModal" type="Aura.Action"/>
     <aura:attribute name="genderOptions" type="List"/>
     <aura:attribute name="classOptions" type="List"/>
     <aura:attribute name="statusOptions" type="List"/>
-    <aura:attribute name="recordId" type="String" default="a00dL00000aUtojQAC"/>
-    <aura:attribute name="isEdit" type="Boolean" default="true"/>
-    <aura:attribute name="selectedLookUpRecord" type="sObject" default="{}"/>
     <aura:attribute name="showSpinner" type="Boolean" default="false"/>
+    <aura:attribute name="onclose" type="Aura.Action"/>
     <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
 
     <div style="width: 560px; margin: 0 auto;">
@@ -26,46 +17,60 @@
             
             <div class="slds-p-around_medium">
                 <lightning:messages />
-                <lightning:input aura:id="lastname" 
-                               label="姓" 
-                               value="{!v.student.Lastname__c}"
-                               required="true"/>
-                
-                <lightning:input aura:id="firstname" 
-                               label="名" 
-                               value="{!v.student.Firstname__c}"
-                               required="true"/>
-                
-                <lightning:input aura:id="birthday" 
-                               type="date" 
-                               label="生年月日" 
-                               value="{!v.student.Birthday__c}"
-                               required="true"/>
-                
-                <lightning:combobox name="gender"
-                                  label="性別"
-                                  value="{!v.student.Gender__c}"
-                                  placeholder="--なし--"
-                                  options="{!v.genderOptions}"
-                                  required="true"/>
-
-                <lightning:combobox name="class"
-                                  label="クラス"
-                                  value="{!v.student.Class_look__c}"
-                                  placeholder="--なし--"
-                                  options="{!v.classOptions}"
-                                  required="true"/>
-
-                <lightning:combobox name="status"
-                                  label="ステータス"
-                                  value="{!v.student.LearningStatus__c}"
-                                  placeholder="--なし--"
-                                  options="{!v.statusOptions}"
-                                  required="true"/>
+                <div class="slds-form">
+                    <div class="slds-form-element slds-m-bottom_small">
+                        <lightning:input label="姓"
+                                       value="{!v.student.Lastname__c}"
+                                       required="true"
+                                       onchange="{!c.handleFieldChange}"/>
+                    </div>
+                    
+                    <div class="slds-form-element slds-m-bottom_small">
+                        <lightning:input label="名"
+                                       value="{!v.student.Firstname__c}"
+                                       required="true"
+                                       onchange="{!c.handleFieldChange}"/>
+                    </div>
+                    
+                    <div class="slds-form-element slds-m-bottom_small">
+                        <lightning:input type="date"
+                                       label="生年月日"
+                                       value="{!v.student.Birthday__c}"
+                                       required="true"
+                                       onchange="{!c.handleFieldChange}"/>
+                    </div>
+                    
+                    <div class="slds-form-element slds-m-bottom_small">
+                        <lightning:combobox label="性別"
+                                          value="{!v.student.Gender__c}"
+                                          options="{!v.genderOptions}"
+                                          placeholder="--なし--"
+                                          required="true"
+                                          onchange="{!c.handleFieldChange}"/>
+                    </div>
+                    
+                    <div class="slds-form-element slds-m-bottom_small">
+                        <lightning:combobox label="クラス"
+                                          value="{!v.student.Class_look__c}"
+                                          options="{!v.classOptions}"
+                                          placeholder="--なし--"
+                                          required="true"
+                                          onchange="{!c.handleFieldChange}"/>
+                    </div>
+                    
+                    <div class="slds-form-element slds-m-bottom_small">
+                        <lightning:combobox label="ステータス"
+                                          value="{!v.student.LearningStatus__c}"
+                                          options="{!v.statusOptions}"
+                                          placeholder="--なし--"
+                                          required="true"
+                                          onchange="{!c.handleFieldChange}"/>
+                    </div>
+                </div>
                 
                 <div class="slds-m-top_medium slds-text-align_right">
                     <lightning:button label="キャンセル" 
-                                      onclick="{!c.handleCancel}" 
+                                      onclick="{!c.handleClose}" 
                                       class="slds-m-right_x-small"/>
                     <lightning:button label="保存" 
                                       variant="brand" 

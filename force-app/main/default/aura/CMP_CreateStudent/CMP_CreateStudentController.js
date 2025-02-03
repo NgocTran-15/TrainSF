@@ -10,6 +10,11 @@
     },
     
     handleSave: function(component, event, helper) {
+        // Kiểm tra các trường bắt buộc
+        if (!helper.validateFields(component)) {
+            return; // Nếu có trường rỗng, không thực hiện lưu
+        }
+
         component.set("v.showSpinner", true);
         
         var action = component.get("c.createStudent");
@@ -24,7 +29,7 @@
             if (state === "SUCCESS") {
                 helper.showToast('Success', '学生が正常に作成されました。', 'success');
                 
-                // Navigate back to search after 2 seconds
+                // Chuyển hướng về trang search sau 2 giây
                 window.setTimeout(
                     $A.getCallback(function() {
                         var navEvt = $A.get("e.force:navigateToComponent");
@@ -41,13 +46,16 @@
         });
         
         $A.enqueueAction(action);
+        
+        // After successful save, fire the close event
+        var closeEvent = $A.get("e.c:CloseModalEvent");
+        closeEvent.fire();
     },
 
     handleCancel: function(component, event, helper) {
-        var navEvt = $A.get("e.force:navigateToComponent");
-        navEvt.setParams({
-            componentDef: "c:CMP_SearchStudent"
-        });
-        navEvt.fire();
+        var closeModal = component.get("v.closeModal");
+        if (closeModal) {
+            $A.enqueueAction(closeModal);
+        }
     }
 })

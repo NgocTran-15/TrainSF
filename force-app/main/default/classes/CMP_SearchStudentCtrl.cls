@@ -146,6 +146,28 @@ public with sharing class CMP_SearchStudentCtrl {
     public static List<Student__c> getStudents() {
         return [SELECT Id, Lastname__c, Firstname__c, Birthday__c, Gender__c, Class_look__c, LearningStatus__c FROM Student__c];
     }
+
+    @AuraEnabled
+    public static Student__c getStudent(String recordId) {
+        try {
+            System.debug('Getting student details for ID: ' + recordId);
+            
+            Student__c student = [
+                SELECT Id, StudentCode__c, Lastname__c, Firstname__c, 
+                       Birthday__c, Gender__c, Class_look__c, Class_look__r.Name,
+                       LearningStatus__c
+                FROM Student__c 
+                WHERE Id = :recordId
+                LIMIT 1
+            ];
+            
+            System.debug('Retrieved student: ' + student);
+            return student;
+        } catch (Exception e) {
+            System.debug('Error getting student: ' + e.getMessage());
+            throw new AuraHandledException('学生データの取得に失敗しました: ' + e.getMessage());
+        }
+    }
     
     // Wrapper class for search results
     public class SearchResult {

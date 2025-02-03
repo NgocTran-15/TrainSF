@@ -65,8 +65,7 @@
         toastEvent.setParams({
             title: title,
             message: message,
-            type: type,
-            duration: 2000
+            type: type
         });
         toastEvent.fire();
     },
@@ -117,50 +116,41 @@
         this.showToast("エラー", errorMsg, "error");
     },
 
-    validateFields: function(component, student) {
-        console.log('Validating fields:', JSON.stringify(student));
-        
-        // Check for null student object
-        if (!student || !student.sobjectType) {
-            this.showToast("エラー", "Invalid student data", "error");
-            return false;
+    validateFields: function(component) {
+        var student = component.get("v.student");
+        var errorMessages = {};
+        var isValid = true;
+
+        // Kiểm tra các trường bắt buộc
+        if (!student.Lastname__c || student.Lastname__c.trim() === '') {
+            errorMessages.Lastname__c = 'このフィールドは必須です。';
+            isValid = false;
+        }
+        if (!student.Firstname__c || student.Firstname__c.trim() === '') {
+            errorMessages.Firstname__c = 'このフィールドは必須です。';
+            isValid = false;
+        }
+        if (!student.Birthday__c) {
+            errorMessages.Birthday__c = 'このフィールドは必須です。';
+            isValid = false;
+        }
+        if (!student.Gender__c || student.Gender__c.trim() === '') {
+            errorMessages.Gender__c = 'このフィールドは必須です。';
+            isValid = false;
+        }
+        if (!student.Class_look__c || student.Class_look__c.trim() === '') {
+            errorMessages.Class_look__c = 'このフィールドは必須です。';
+            isValid = false;
+        }
+        if (!student.LearningStatus__c || student.LearningStatus__c.trim() === '') {
+            errorMessages.LearningStatus__c = 'このフィールドは必須です。';
+            isValid = false;
         }
 
-        var requiredFields = {
-            'lastname': {field: 'Lastname__c', label: '姓'},
-            'firstname': {field: 'Firstname__c', label: '名'},
-            'birthday': {field: 'Birthday__c', label: '生年月日'},
-            'gender': {field: 'Gender__c', label: '性別'},
-            'class': {field: 'Class_look__c', label: 'クラス'}
-        };
-        
-        var missingFields = [];
-        var isValid = true;
-        
-        // Validate each required field
-        for (let key in requiredFields) {
-            let fieldInfo = requiredFields[key];
-            let value = student[fieldInfo.field];
-            let input = component.find(key);
-            
-            if (!value) {
-                isValid = false;
-                missingFields.push(fieldInfo.label);
-                if (input && input.setCustomValidity) {
-                    input.setCustomValidity(fieldInfo.label + 'は必須です。');
-                    input.reportValidity();
-                }
-            } else if (input && input.setCustomValidity) {
-                input.setCustomValidity('');
-                input.reportValidity();
-            }
-        }
-        
-        if (!isValid) {
-            this.showToast("エラー", "必須項目を入力してください: " + missingFields.join(', '), "error");
-        }
-        
-        return isValid;
+        // Cập nhật thông báo lỗi vào thuộc tính
+        component.set("v.errorMessages", errorMessages);
+
+        return isValid; // Trả về true nếu tất cả các trường đều hợp lệ
     },
 
     saveStudent: function(component) {

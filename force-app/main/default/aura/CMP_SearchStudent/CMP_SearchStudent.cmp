@@ -2,6 +2,7 @@
     <!-- Attributes -->
     <aura:attribute name="students" type="Object[]"/>
     <aura:attribute name="pageSize" type="Integer" default="10"/>
+    <aura:registerEvent name="CloseModalEvent" type="c:CloseModalEvent"/>
     <aura:attribute name="pageNumber" type="Integer" default="1"/>
     <aura:attribute name="totalPages" type="Integer" default="0"/>
     <aura:attribute name="totalRecords" type="Integer" default="0"/>
@@ -25,6 +26,12 @@
     <!-- Add this attribute for delete modal -->
     <aura:attribute name="showDeleteModal" type="Boolean" default="false"/>
     <aura:attribute name="deleteId" type="String"/>
+    
+    <!-- New attributes for modal -->
+    <aura:attribute name="showCreateModal" type="Boolean" default="false"/>
+    <aura:attribute name="showViewModal" type="Boolean" default="false"/>
+    <aura:attribute name="showEditModal" type="Boolean" default="false"/>
+    <aura:attribute name="selectedStudent" type="Object"/>
     
     <!-- Handler -->
     <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
@@ -111,7 +118,8 @@
                             </td>
                             <td>
                                 <a onclick="{!c.handleView}" 
-                                   data-id="{!student.Id}">{!student.StudentCode__c}</a>
+                                   data-id="{!student.Id}"
+                                   value="{!student.Id}">{!student.StudentCode__c}</a>
                             </td>
                             <td>{!student.Lastname__c}</td>
                             <td>{!student.Firstname__c}</td>
@@ -126,20 +134,21 @@
                             <td>
                                 <div class="slds-button-group">
                                     <lightning:buttonIcon iconName="utility:preview" 
-                                                          alternativeText="表示" 
-                                                          onclick="{!c.handleView}" 
-                                                          value="{!student.Id}" 
-                                                          variant="bare"/>
+                                                        title="表示"
+                                                        value="{!student.Id}"
+                                                        onclick="{!c.openDetailModal}"
+                                                        variant="border-filled"
+                                                        class="slds-button slds-button_icon slds-button_icon-border"/>
                                     <lightning:buttonIcon iconName="utility:edit" 
-                                                          alternativeText="編集" 
-                                                          onclick="{!c.handleEdit}" 
-                                                          value="{!student.Id}" 
-                                                          variant="bare"/>
+                                                        title="編集"
+                                                        value="{!student.Id}"
+                                                        onclick="{!c.handleEdit}"
+                                                        class="slds-button slds-button_icon slds-button_icon-border"/>
                                     <lightning:buttonIcon iconName="utility:delete" 
-                                                          alternativeText="削除" 
-                                                          onclick="{!c.handleDelete}" 
-                                                          value="{!student.Id}" 
-                                                          variant="bare"/>
+                                                        title="削除"
+                                                        value="{!student.Id}"
+                                                        onclick="{!c.handleDelete}"
+                                                        class="slds-button slds-button_icon slds-button_icon-border"/>
                                 </div>
                             </td>
                         </tr>
@@ -203,4 +212,69 @@
     
     <!-- Add at the top of the component -->
     <lightning:spinner aura:id="spinner" variant="brand" size="large" class="slds-hide"/>
+
+    <!-- Modal for Creating Student -->
+    <aura:if isTrue="{!v.showCreateModal}">
+        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <h2 class="slds-text-heading_medium">新規学生</h2>
+                    <lightning:buttonIcon iconName="utility:close"
+                                        onclick="{!c.closeCreateModal}"
+                                        alternativeText="Close"
+                                        variant="bare-inverse"
+                                        class="slds-modal__close"/>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium">
+                    <c:CMP_CreateStudent aura:id="createStudentCmp" 
+                                       closeModal="{!c.closeCreateModal}"/>
+                </div>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if>
+
+    <!-- View Modal -->
+    <aura:if isTrue="{!v.showViewModal}">
+        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <h2 class="slds-text-heading_medium">学生詳細</h2>
+                    <lightning:buttonIcon iconName="utility:close"
+                                        onclick="{!c.closeViewModal}"
+                                        alternativeText="Close"
+                                        variant="bare-inverse"
+                                        class="slds-modal__close"/>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium">
+                    <c:CMP_DetailStudent student="{!v.selectedStudent}" 
+                                       closeModal="{!c.closeViewModal}"/>
+                </div>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if>
+
+    <!-- Edit Modal -->
+    <aura:if isTrue="{!v.showEditModal}">
+        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <h2 class="slds-text-heading_medium">学生編集</h2>
+                    <lightning:buttonIcon iconName="utility:close"
+                                        onclick="{!c.closeEditModal}"
+                                        alternativeText="Close"
+                                        variant="bare-inverse"
+                                        class="slds-modal__close"/>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium">
+                    <c:CMP_UpdateStudent student="{!v.selectedStudent}" 
+                                       closeModal="{!c.closeEditModal}"/>
+                </div>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if>
+
+    <aura:registerEvent name="closeCreateModal" type="c:CloseModalEvent"/>
 </aura:component>

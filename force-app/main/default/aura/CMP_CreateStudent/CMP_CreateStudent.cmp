@@ -15,6 +15,8 @@
     <aura:attribute name="statusOptions" type="List"/>
     <aura:attribute name="recordId" type="String" default="a00dL00000ZK8yBQAT"/>
     <aura:attribute name="isEdit" type="Boolean" default="false"/>
+    <aura:attribute name="errorMessages" type="Object" default="{}"/>
+    <aura:attribute name="closeModal" type="Aura.Action"/>
     <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
 
     <aura:if isTrue="{!v.showSpinner}">
@@ -32,14 +34,22 @@
                     <lightning:input label="姓"
                                    aura:id="lastname"
                                    value="{!v.student.Lastname__c}"
-                                   required="true"/>
+                                   required="true"
+                                   messageWhenValueMissing="このフィールドは必須です."/>
+                    <aura:if isTrue="{!v.errorMessages.Lastname__c}">
+                        <div class="slds-text-color_error">{!v.errorMessages.Lastname__c}</div>
+                    </aura:if>
                 </div>
                 
                 <div class="slds-form-element slds-m-bottom_small">
                     <lightning:input label="名"
                                    aura:id="firstname"
                                    value="{!v.student.Firstname__c}"
-                                   required="true"/>
+                                   required="true"
+                                   messageWhenValueMissing="このフィールドは必須です."/>
+                    <aura:if isTrue="{!v.errorMessages.Firstname__c}">
+                        <div class="slds-text-color_error">{!v.errorMessages.Firstname__c}</div>
+                    </aura:if>
                 </div>
                 
                 <div class="slds-form-element slds-m-bottom_small">
@@ -47,7 +57,11 @@
                                    label="生年月日"
                                    aura:id="birthday"
                                    value="{!v.student.Birthday__c}"
-                                   required="true"/>
+                                   required="true"
+                                   messageWhenValueMissing="このフィールドは必須です."/>
+                    <aura:if isTrue="{!v.errorMessages.Birthday__c}">
+                        <div class="slds-text-color_error">{!v.errorMessages.Birthday__c}</div>
+                    </aura:if>
                 </div>
                 
                 <div class="slds-form-element slds-m-bottom_small">
@@ -57,6 +71,9 @@
                                       options="{!v.genderOptions}"
                                       placeholder="--なし--"
                                       required="true"/>
+                    <aura:if isTrue="{!v.errorMessages.Gender__c}">
+                        <div class="slds-text-color_error">{!v.errorMessages.Gender__c}</div>
+                    </aura:if>
                 </div>
                 
                 <div class="slds-form-element slds-m-bottom_small">
@@ -66,6 +83,9 @@
                                       options="{!v.classOptions}"
                                       placeholder="--なし--"
                                       required="true"/>
+                    <aura:if isTrue="{!v.errorMessages.Class_look__c}">
+                        <div class="slds-text-color_error">{!v.errorMessages.Class_look__c}</div>
+                    </aura:if>
                 </div>
                 
                 <div class="slds-form-element slds-m-bottom_small">
@@ -75,6 +95,9 @@
                                       options="{!v.statusOptions}"
                                       placeholder="--なし--"
                                       required="true"/>
+                    <aura:if isTrue="{!v.errorMessages.LearningStatus__c}">
+                        <div class="slds-text-color_error">{!v.errorMessages.LearningStatus__c}</div>
+                    </aura:if>
                 </div>
             </div>
         </div>
@@ -83,6 +106,7 @@
             <div class="slds-text-align_right">
                 <lightning:button label="キャンセル"
                                 onclick="{!c.handleCancel}"
+                                variant="neutral"
                                 class="slds-m-right_x-small"/>
                 <lightning:button label="保存"
                                 variant="brand"
