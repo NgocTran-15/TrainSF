@@ -147,6 +147,29 @@
             isValid = false;
         }
 
+        // Add age validation
+        if (student.Birthday__c) {
+            var today = new Date();
+            var birthDate = new Date(student.Birthday__c);
+            var age = today.getFullYear() - birthDate.getFullYear();
+            var monthDiff = today.getMonth() - birthDate.getMonth();
+            
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            
+            if (age < 18) {
+                errorMessages.Birthday__c = '学生は18歳以上である必要があります。';
+                isValid = false;
+            }
+            
+            // Add future date validation
+            if (birthDate > today) {
+                errorMessages.Birthday__c = '生年月日は未来の日付にすることはできません。';
+                isValid = false;
+            }
+        }
+
         // Cập nhật thông báo lỗi vào thuộc tính
         component.set("v.errorMessages", errorMessages);
 

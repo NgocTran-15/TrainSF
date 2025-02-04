@@ -1,72 +1,97 @@
 ({
     loadStudent : function(component) {
-        var action = component.get("c.getStudent");
-        action.setParams({
-            recordId: component.get("v.recordId")
+        return new Promise(function(resolve, reject) {
+            var action = component.get("c.getStudent");
+            action.setParams({
+                recordId: component.get("v.recordId")
+            });
+            
+            action.setCallback(this, function(response) {
+                var state = response.getState();
+                if (state === "SUCCESS") {
+                    component.set("v.student", response.getReturnValue());
+                    resolve();
+                } else {
+                    console.error('Error loading student');
+                    reject(response.getError());
+                }
+            });
+            $A.enqueueAction(action);
         });
-        
-        action.setCallback(this, function(response) {
-            var state = response.getState();
-            if (state === "SUCCESS") {
-                component.set("v.student", response.getReturnValue());
-            } else {
-                console.error('Error loading student');
-            }
-        });
-        $A.enqueueAction(action);
     },
     
     loadPicklistValues : function(component) {
-        // Load Gender Options
-        var action1 = component.get("c.getGenderOptions");
-        action1.setCallback(this, function(response) {
-            if (response.getState() === "SUCCESS") {
-                component.set("v.genderOptions", response.getReturnValue());
-            }
+        return Promise.all([
+            this.loadGenderOptions(component),
+            this.loadClassOptions(component),
+            this.loadLearningStatusOptions(component)
+        ]).then(function() {
+            console.log('All picklist values loaded');
+            return Promise.resolve();
+        }).catch(function(error) {
+            console.error('Error loading picklist values:', error);
+            return Promise.reject(error);
         });
-        
-        // Enhanced Class Options loading with better error handling
-        var action2 = component.get("c.getClassOptions");
-        action2.setCallback(this, function(response) {
-            var state = response.getState();
-            if (state === "SUCCESS") {
-                var classOptions = response.getReturnValue();
-                console.log('Class Options:', classOptions);
-                if (classOptions && classOptions.length > 0) {
-                    component.set("v.classOptions", classOptions);
+    },
+
+    loadGenderOptions: function(component) {
+        return new Promise(function(resolve, reject) {
+            var action = component.get("c.getGenderOptions");
+            action.setCallback(this, function(response) {
+                if (response.getState() === "SUCCESS") {
+                    component.set("v.genderOptions", response.getReturnValue());
+                    resolve();
                 } else {
-                    console.warn('No class options returned');
+                    reject(response.getError());
                 }
-            } else if (state === "ERROR") {
-                var errors = response.getError();
-                if (errors) {
-                    if (errors[0] && errors[0].message) {
-                        console.error("Error loading class options:", errors[0]);
-                        // Show detailed error toast
-                        var toastEvent = $A.get("e.force:showToast");
-                        toastEvent.setParams({
-                            "title": "Error Loading Classes",
-                            "message": errors[0].message,
-                            "type": "error",
-                            "mode": "sticky"
-                        });
-                        toastEvent.fire();
-                    }
+            });
+            $A.enqueueAction(action);
+        });
+    },
+
+    loadClassOptions: function(component) {
+        return new Promise(function(resolve, reject) {
+            var action = component.get("c.getClassOptions");
+            action.setCallback(this, function(response) {
+                var state = response.getState();
+                if (state === "SUCCESS") {
+                    var options = response.getReturnValue();
+                    options.unshift({
+                        'label': '--なし--',
+                        'value': ''
+                    });
+                    component.set("v.classOptions", options);
+                    resolve();
+                } else {
+                    reject(response.getError());
                 }
-            }
+            });
+            $A.enqueueAction(action);
         });
-        
-        // Load Status Options
-        var action3 = component.get("c.getStatusOptions");
-        action3.setCallback(this, function(response) {
-            if (response.getState() === "SUCCESS") {
-                component.set("v.statusOptions", response.getReturnValue());
-            }
+    },
+
+    loadLearningStatusOptions: function(component) {
+        return new Promise(function(resolve, reject) {
+            var action = component.get("c.getStatusOptions");
+            action.setCallback(this, function(response) {
+                if (response.getState() === "SUCCESS") {
+                    var options = response.getReturnValue();
+                    // Log để debug options
+                    console.log('Status Options loaded:', options);
+                    
+                    // Log giá trị hiện tại của student
+                    var student = component.get("v.student");
+                    console.log('Current student status:', student ? student.LearningStatus__c : 'No student');
+                    
+                    component.set("v.statusOptions", options);
+                    resolve();
+                } else {
+                    console.error('Error loading status options:', response.getError());
+                    reject(response.getError());
+                }
+            });
+            $A.enqueueAction(action);
         });
-        
-        $A.enqueueAction(action1);
-        $A.enqueueAction(action2);
-        $A.enqueueAction(action3);
     },
     
     saveStudent : function(component) {

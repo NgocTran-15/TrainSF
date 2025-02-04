@@ -70,6 +70,23 @@ public with sharing class CMP_CreateStudentCtrl {
                 throw new AuraHandledException(errorMsg);
             }
 
+            // Validate age before creating student
+            if (student.Birthday__c != null) {
+                Date today = Date.today();
+                Integer age = today.year() - student.Birthday__c.year();
+                
+                // Adjust age if birthday hasn't occurred this year
+                if (today.month() < student.Birthday__c.month() || 
+                    (today.month() == student.Birthday__c.month() && 
+                     today.day() < student.Birthday__c.day())) {
+                    age--;
+                }
+                
+                if (age < 18) {
+                    throw new AuraHandledException('学生は18歳以上である必要があります。');
+                }
+            }
+
             // Insert with savepoint for rollback
             Savepoint sp = Database.setSavepoint();
             try {

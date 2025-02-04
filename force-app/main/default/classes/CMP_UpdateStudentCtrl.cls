@@ -62,22 +62,38 @@ public with sharing class CMP_UpdateStudentCtrl {
     public static List<Map<String, String>> getStatusOptions() {
         List<Map<String, String>> options = new List<Map<String, String>>();
         Schema.DescribeFieldResult fieldResult = Student__c.LearningStatus__c.getDescribe();
-        List<Schema.PicklistEntry> ple = fieldResult.getPicklistValues();
-        for(Schema.PicklistEntry entry : ple) {
-            options.add(new Map<String, String>{
-                'label' => entry.getLabel(),
-                'value' => entry.getValue()
-            });
+        
+        for(Schema.PicklistEntry entry : fieldResult.getPicklistValues()) {
+            if(entry.isActive()) {
+                // Log giá trị để debug
+                System.debug('Status Option - Label: ' + entry.getLabel() + ', Value: ' + entry.getValue());
+                options.add(new Map<String, String>{
+                    'label' => entry.getLabel(),
+                    'value' => entry.getValue()
+                });
+            }
         }
         return options;
     }
     
     @AuraEnabled
     public static Student__c getStudent(String recordId) {
-        return [SELECT Id, Lastname__c, Firstname__c, Birthday__c, 
-                Gender__c, Class_look__c, LearningStatus__c 
+        try {
+            System.debug('Getting student with ID: ' + recordId);
+            Student__c student = [
+                SELECT Id, StudentCode__c, Lastname__c, Firstname__c, 
+                       Birthday__c, Gender__c, Class_look__c, Class_look__r.Name,
+                       LearningStatus__c 
                 FROM Student__c 
-                WHERE Id = :recordId];
+                WHERE Id = :recordId
+            ];
+            
+            // Log cho debug
+            System.debug('Original Learning Status: ' + student.LearningStatus__c);
+            return student;
+        } catch(Exception e) {
+            throw new AuraHandledException(e.getMessage());
+        }
     }
     
     @AuraEnabled

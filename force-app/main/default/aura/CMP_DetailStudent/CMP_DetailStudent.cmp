@@ -2,64 +2,64 @@
     <aura:attribute name="student" type="Object" default="{}"/>
     <aura:attribute name="closeModal" type="Aura.Action"/>
 
-    <div class="slds-form">
-        <!-- Debug info -->
-        <div class="slds-text-color_weak slds-text-body_small slds-m-bottom_small">
-            {!v.student.StudentCode__c ? 'Data loaded' : 'Loading...'}
-        </div>
-
-        <!-- Form fields -->
-        <div class="slds-form-element slds-m-bottom_small">
-            <label class="slds-form-element__label">学生コード</label>
-            <div class="slds-form-element__control">
-                <div class="slds-form-element__static">{!v.student.StudentCode__c}</div>
+    <div class="slds-grid slds-gutters">
+        <!-- Left Column -->
+        <div class="slds-col slds-size_1-of-2">
+            <div class="slds-form-element slds-m-bottom_small">
+                <label class="slds-form-element__label">学生コード</label>
+                <div class="slds-form-element__control">
+                    <div class="slds-form-element__static">{!v.student.StudentCode__c}</div>
+                </div>
             </div>
-        </div>
-        
-        <div class="slds-form-element slds-m-bottom_small">
-            <label class="slds-form-element__label">姓</label>
-            <div class="slds-form-element__control">
-                <div class="slds-form-element__static">{!v.student.Lastname__c}</div>
+            
+            <div class="slds-form-element slds-m-bottom_small">
+                <label class="slds-form-element__label">姓</label>
+                <div class="slds-form-element__control">
+                    <div class="slds-form-element__static">{!v.student.Lastname__c}</div>
+                </div>
             </div>
-        </div>
-        
-        <div class="slds-form-element slds-m-bottom_small">
-            <label class="slds-form-element__label">名</label>
-            <div class="slds-form-element__control">
-                <div class="slds-form-element__static">{!v.student.Firstname__c}</div>
+            
+            <div class="slds-form-element slds-m-bottom_small">
+                <label class="slds-form-element__label">名</label>
+                <div class="slds-form-element__control">
+                    <div class="slds-form-element__static">{!v.student.Firstname__c}</div>
+                </div>
             </div>
-        </div>
-        
-        <div class="slds-form-element slds-m-bottom_small">
-            <label class="slds-form-element__label">生年月日</label>
-            <div class="slds-form-element__control">
-                <div class="slds-form-element__static">
-                    <lightning:formattedDateTime value="{!v.student.Birthday__c}" 
-                                               year="numeric" 
-                                               month="2-digit" 
-                                               day="2-digit"/>
+            
+            <div class="slds-form-element slds-m-bottom_small">
+                <label class="slds-form-element__label">生年月日</label>
+                <div class="slds-form-element__control">
+                    <div class="slds-form-element__static">
+                        <lightning:formattedDateTime value="{!v.student.Birthday__c}" 
+                                                   year="numeric" 
+                                                   month="2-digit" 
+                                                   day="2-digit"/>
+                    </div>
                 </div>
             </div>
         </div>
         
-        <div class="slds-form-element slds-m-bottom_small">
-            <label class="slds-form-element__label">性別</label>
-            <div class="slds-form-element__control">
-                <div class="slds-form-element__static">{!v.student.Gender__c}</div>
+        <!-- Right Column -->
+        <div class="slds-col slds-size_1-of-2">
+            <div class="slds-form-element slds-m-bottom_small">
+                <label class="slds-form-element__label">性別</label>
+                <div class="slds-form-element__control">
+                    <div class="slds-form-element__static">{!v.student.Gender__c}</div>
+                </div>
             </div>
-        </div>
-        
-        <div class="slds-form-element slds-m-bottom_small">
-            <label class="slds-form-element__label">クラス</label>
-            <div class="slds-form-element__control">
-                <div class="slds-form-element__static">{!v.student.Class_look__r.Name}</div>
+            
+            <div class="slds-form-element slds-m-bottom_small">
+                <label class="slds-form-element__label">クラス</label>
+                <div class="slds-form-element__control">
+                    <div class="slds-form-element__static">{!v.student.Class_look__r.Name}</div>
+                </div>
             </div>
-        </div>
-        
-        <div class="slds-form-element slds-m-bottom_small">
-            <label class="slds-form-element__label">ステータス</label>
-            <div class="slds-form-element__control">
-                <div class="slds-form-element__static">{!v.student.LearningStatus__c}</div>
+            
+            <div class="slds-form-element slds-m-bottom_small">
+                <label class="slds-form-element__label">Status</label>
+                <div class="slds-form-element__control">
+                    <div class="slds-form-element__static">{!v.student.LearningStatus__c}</div>
+                </div>
             </div>
         </div>
     </div>

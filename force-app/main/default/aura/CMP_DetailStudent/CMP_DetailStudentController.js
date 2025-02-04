@@ -1,7 +1,25 @@
 ({
     doInit: function(component, event, helper) {
-        // Không cần gọi getStudentDetails vì data đã được truyền qua attribute
-        console.log('Detail Student Init:', component.get("v.student"));
+        var student = component.get("v.student");
+        if (student && student.LearningStatus__c) {
+            // Get Japanese label for Learning Status
+            var action = component.get("c.getLearningStatusLabel");
+            action.setParams({
+                value: student.LearningStatus__c
+            });
+            
+            action.setCallback(this, function(response) {
+                if (response.getState() === "SUCCESS") {
+                    var result = response.getReturnValue();
+                    if (result && result.label) {
+                        student.LearningStatus__c = result.label;
+                        component.set("v.student", student);
+                    }
+                }
+            });
+            
+            $A.enqueueAction(action);
+        }
     },
 
     handleEdit: function(component, event, helper) {

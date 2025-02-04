@@ -161,8 +161,21 @@ public with sharing class CMP_SearchStudentCtrl {
                 LIMIT 1
             ];
             
-            System.debug('Retrieved student: ' + student);
+            // Convert Learning Status to Japanese label
+            if (student.LearningStatus__c != null) {
+                Schema.DescribeFieldResult fieldResult = Student__c.LearningStatus__c.getDescribe();
+                List<Schema.PicklistEntry> ple = fieldResult.getPicklistValues();
+                for (Schema.PicklistEntry entry : ple) {
+                    if (entry.getValue() == student.LearningStatus__c) {
+                        student.LearningStatus__c = entry.getLabel(); // This will get the Japanese label
+                        break;
+                    }
+                }
+            }
+            
+            System.debug('Retrieved student with converted status: ' + student);
             return student;
+            
         } catch (Exception e) {
             System.debug('Error getting student: ' + e.getMessage());
             throw new AuraHandledException('学生データの取得に失敗しました: ' + e.getMessage());

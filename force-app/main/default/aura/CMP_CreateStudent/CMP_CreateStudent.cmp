@@ -24,10 +24,6 @@
     </aura:if>
 
     <div class="slds-card" style="width: 560px; margin: auto;">
-        <div class="slds-card__header slds-grid slds-grid_align-center">
-            <h2 class="slds-text-heading_medium">新規学生</h2>
-        </div>
-        
         <div class="slds-card__body slds-p-around_medium">
             <div class="slds-form">
                 <div class="slds-form-element slds-m-bottom_small">
@@ -58,9 +54,12 @@
                                    aura:id="birthday"
                                    value="{!v.student.Birthday__c}"
                                    required="true"
-                                   messageWhenValueMissing="このフィールドは必須です."/>
+                                   messageWhenValueMissing="このフィールドは必須です。"
+                                   onchange="{!c.handleFieldChange}"/>
                     <aura:if isTrue="{!v.errorMessages.Birthday__c}">
-                        <div class="slds-text-color_error">{!v.errorMessages.Birthday__c}</div>
+                        <div class="slds-form-element__help slds-text-color_error">
+                            {!v.errorMessages.Birthday__c}
+                        </div>
                     </aura:if>
                 </div>
                 

@@ -12,23 +12,37 @@ public with sharing class CMP_DetailStudentCtrl {
                 LIMIT 1
             ];
             
-            // Get picklist values
-            student.Gender__c = getPicklistValue('Student__c', 'Gender__c', student.Gender__c);
-            student.LearningStatus__c = getPicklistValue('Student__c', 'LearningStatus__c', student.LearningStatus__c);
+            // Convert picklist values to labels
+            if (student.LearningStatus__c != null) {
+                Schema.DescribeFieldResult fieldResult = Student__c.LearningStatus__c.getDescribe();
+                List<Schema.PicklistEntry> ple = fieldResult.getPicklistValues();
+                for(Schema.PicklistEntry entry : ple) {
+                    if (entry.getValue() == student.LearningStatus__c) {
+                        student.LearningStatus__c = entry.getLabel();
+                        break;
+                    }
+                }
+            }
             
             return student;
         } catch (Exception e) {
-            throw new AuraHandledException('学生データの取得中にエラーが発生しました: ' + e.getMessage());
+            throw new AuraHandledException('Error getting student: ' + e.getMessage());
         }
     }
 
-    private static String getPicklistValue(String objectName, String fieldName, String apiValue) {
-        Schema.DescribeFieldResult fieldResult = Schema.getGlobalDescribe().get(objectName).getDescribe().fields.getMap().get(fieldName).getDescribe();
-        for (Schema.PicklistEntry entry : fieldResult.getPicklistValues()) {
-            if (entry.getValue() == apiValue) {
-                return entry.getLabel(); // Return the label (Japanese value)
+    @AuraEnabled
+    public static Map<String, String> getLearningStatusLabel(String value) {
+        Map<String, String> result = new Map<String, String>();
+        Schema.DescribeFieldResult fieldResult = Student__c.LearningStatus__c.getDescribe();
+        List<Schema.PicklistEntry> ple = fieldResult.getPicklistValues();
+        
+        for(Schema.PicklistEntry entry : ple) {
+            if (entry.getValue() == value) {
+                result.put('label', entry.getLabel());
+                result.put('value', entry.getValue());
+                break;
             }
         }
-        return null; // Return null if not found
+        return result;
     }
 }

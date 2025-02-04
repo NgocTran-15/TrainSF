@@ -1,7 +1,33 @@
 ({
     doInit : function(component, event, helper) {
-        console.log('Init Student:', component.get("v.student"));
-        helper.loadPicklistValues(component);
+        // First load student data
+        var action = component.get("c.getStudent");
+        action.setParams({
+            recordId: component.get("v.recordId")
+        });
+        
+        action.setCallback(this, function(response) {
+            if (response.getState() === "SUCCESS") {
+                var student = response.getReturnValue();
+                console.log('Loaded student data:', student);
+                
+                // Store original status
+                var originalStatus = student.LearningStatus__c;
+                component.set("v.student", student);
+                
+                // Then load picklist values
+                helper.loadPicklistValues(component).then(function() {
+                    // Restore original status
+                    var updatedStudent = component.get("v.student");
+                    if (updatedStudent) {
+                        updatedStudent.LearningStatus__c = originalStatus;
+                        console.log('Setting status back to:', originalStatus);
+                        component.set("v.student", updatedStudent);
+                    }
+                });
+            }
+        });
+        $A.enqueueAction(action);
     },
     
     handleFieldChange : function(component, event, helper) {
@@ -9,7 +35,6 @@
         var value = event.getSource().get("v.value");
         console.log('Field changed:', fieldName, value);
         
-        // Update the student object
         var student = component.get("v.student");
         student[fieldName] = value;
         component.set("v.student", student);

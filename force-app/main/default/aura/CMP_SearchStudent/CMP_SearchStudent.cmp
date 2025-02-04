@@ -33,6 +33,9 @@
     <aura:attribute name="showEditModal" type="Boolean" default="false"/>
     <aura:attribute name="selectedStudent" type="Object"/>
     
+    <!-- Add new attribute for search criteria -->
+    <aura:attribute name="hasSearchCriteria" type="Boolean" default="false"/>
+
     <!-- Handler -->
     <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
     
@@ -44,28 +47,33 @@
                     <div class="search-container slds-grid slds-gutters slds-wrap">
                         <div class="slds-col slds-size_1-of-6">
                             <lightning:input label="学生コード" 
-                                           value="{!v.studentCode}"/>
+                                           value="{!v.studentCode}"
+                                           onchange="{!c.handleSearchFieldChange}"/>
                         </div>
                         <div class="slds-col slds-size_1-of-6">
-                            <lightning:input label="氏名" 
-                                           value="{!v.searchName}"/>
+                            <lightning:input label="名前" 
+                                           value="{!v.searchName}"
+                                           onchange="{!c.handleSearchFieldChange}"/>
                         </div>
                         <div class="slds-col slds-size_1-of-6">
                             <lightning:combobox label="クラス"
                                               value="{!v.classCode}"
                                               placeholder="--なし--"
-                                              options="{!v.classOptions}"/>
+                                              options="{!v.classOptions}"
+                                              onchange="{!c.handleSearchFieldChange}"/>
                         </div>
                         <div class="slds-col slds-size_1-of-6">
                             <lightning:combobox label="性別"
                                               value="{!v.gender}"
                                               placeholder="--なし--"
-                                              options="{!v.genderOptions}"/>
+                                              options="{!v.genderOptions}"
+                                              onchange="{!c.handleSearchFieldChange}"/>
                         </div>
                         <div class="slds-col slds-size_1-of-6">
                             <lightning:input type="date" 
                                            label="生年月日"
-                                           value="{!v.birthDate}"/>
+                                           value="{!v.birthDate}"
+                                           onchange="{!c.handleSearchFieldChange}"/>
                         </div>
                     </div>
                     
@@ -73,14 +81,26 @@
                     <div class="slds-grid slds-gutters slds-m-top_medium">
                         <div class="slds-col">
                             <lightning:button label="検索" 
+                                            iconName="utility:search"
+                                            iconPosition="left"
                                             onclick="{!c.handleSearch}"
                                             variant="brand"/>
                             <lightning:button label="作成" 
+                                            iconName="utility:new"
+                                            iconPosition="left"
+                                            variant="brand-outline"
                                             onclick="{!c.handleCreate}"/>
                             <lightning:button label="クリア" 
+                                            iconName="utility:clear"
+                                            variant="brand-outline"
+                                            iconPosition="left"
+                                            disabled="{!NOT(v.hasSearchCriteria)}"
                                             onclick="{!c.handleClear}"/>
                             <lightning:button label="削除" 
+                                            iconName="utility:delete"
+                                            iconPosition="left"
                                             onclick="{!c.handleBulkDelete}"
+                                            disabled="{!empty(v.selectedIds)}"
                                             variant="destructive"/>
                         </div>
                     </div>
@@ -239,7 +259,7 @@
         <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
             <div class="slds-modal__container">
                 <header class="slds-modal__header">
-                    <h2 class="slds-text-heading_medium">学生詳細</h2>
+                    <h2 class="slds-text-heading_medium">学生の詳細</h2>
                     <lightning:buttonIcon iconName="utility:close"
                                         onclick="{!c.closeViewModal}"
                                         alternativeText="Close"
@@ -260,7 +280,7 @@
         <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
             <div class="slds-modal__container">
                 <header class="slds-modal__header">
-                    <h2 class="slds-text-heading_medium">学生編集</h2>
+                    <h2 class="slds-text-heading_medium">学生を編集</h2>
                     <lightning:buttonIcon iconName="utility:close"
                                         onclick="{!c.closeEditModal}"
                                         alternativeText="Close"

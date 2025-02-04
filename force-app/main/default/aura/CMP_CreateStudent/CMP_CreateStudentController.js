@@ -52,6 +52,19 @@
         closeEvent.fire();
     },
 
+    handleFieldChange: function(component, event, helper) {
+        // Clear previous error messages when field changes
+        var fieldName = event.getSource().get("v.aura:id");
+        var errorMessages = component.get("v.errorMessages");
+        delete errorMessages[fieldName];
+        component.set("v.errorMessages", errorMessages);
+        
+        // If birthday field changed, validate age immediately
+        if (fieldName === 'birthday') {
+            helper.validateFields(component);
+        }
+    },
+
     handleCancel: function(component, event, helper) {
         var closeModal = component.get("v.closeModal");
         if (closeModal) {

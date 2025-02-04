@@ -9,18 +9,40 @@
         helper.search(component);
     },
     
-    handleClear : function(component, event, helper) {
-        // Reset all search fields
+    handleSearchFieldChange: function(component, event, helper) {
+        var studentCode = component.get("v.studentCode") || '';
+        var searchName = component.get("v.searchName") || '';
+        var classCode = component.get("v.classCode") || '';
+        var gender = component.get("v.gender") || '';
+        var birthDate = component.get("v.birthDate");
+        
+        // Check if any field has a non-empty value
+        var hasSearchCriteria = studentCode.trim() !== '' || 
+                              searchName.trim() !== '' || 
+                              classCode !== '' || 
+                              gender !== '' || 
+                              birthDate !== null;
+        
+        component.set("v.hasSearchCriteria", hasSearchCriteria);
+        console.log('Has search criteria:', hasSearchCriteria, {
+            studentCode: studentCode,
+            searchName: searchName,
+            classCode: classCode,
+            gender: gender,
+            birthDate: birthDate
+        });
+    },
+    
+    handleClear: function(component, event, helper) {
+        // Reset all fields
         component.set("v.studentCode", "");
         component.set("v.searchName", "");
         component.set("v.classCode", "");
         component.set("v.gender", "");
         component.set("v.birthDate", null);
+        component.set("v.hasSearchCriteria", false);
         
-        // Reset pagination
         component.set("v.pageNumber", 1);
-        
-        // Perform search with cleared filters
         helper.search(component);
     },
     
@@ -227,5 +249,15 @@
     
     handleCloseModal : function(component, event, helper) {
         component.set("v.showCreateModal", false);
+    },
+    
+    checkSearchCriteria: function(component) {
+        var hasSearchCriteria = !!(component.get("v.studentCode") || 
+                                 component.get("v.searchName") || 
+                                 component.get("v.classCode") || 
+                                 component.get("v.gender") || 
+                                 component.get("v.birthDate"));
+        
+        component.set("v.hasSearchCriteria", hasSearchCriteria);
     }
 })
