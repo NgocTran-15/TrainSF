@@ -1,0 +1,5 @@
+.detail-form-container {
+    /* Styles moved from inline to CSS file */
+    max-width: 600px;
+    margin: auto;
+}

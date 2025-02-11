@@ -1,12 +1,14 @@
-<aura:component controller="CMP_UpdateStudentCtrl" 
-               implements="force:appHostable,flexipage:availableForAllPageTypes">    
+<aura:component controller="CMP_UpdateStudentCtrl" implements="force:appHostable,flexipage:availableForAllPageTypes">    
+    <!-- Đăng ký event để fire từ child -->
+    <aura:registerEvent name="closeModalEvent" type="c:CloseModalEvent"/>
+    
+    <!-- Add recordId attribute -->
+    <aura:attribute name="recordId" type="String" description="Record ID of the student to update"/>
     <aura:attribute name="student" type="Object"/>
-    <aura:attribute name="closeModal" type="Aura.Action"/>
     <aura:attribute name="genderOptions" type="List"/>
     <aura:attribute name="classOptions" type="List"/>
     <aura:attribute name="statusOptions" type="List"/>
     <aura:attribute name="showSpinner" type="Boolean" default="false"/>
-    <aura:attribute name="onclose" type="Aura.Action"/>
     <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
 
     <div style="width: 560px; margin: 0 auto;">
@@ -18,6 +20,7 @@
                         <lightning:input label="姓"
                                        value="{!v.student.Lastname__c}"
                                        required="true"
+                                       fieldName="Lastname__c"
                                        onchange="{!c.handleFieldChange}"/>
                     </div>
                     
@@ -25,6 +28,7 @@
                         <lightning:input label="名"
                                        value="{!v.student.Firstname__c}"
                                        required="true"
+                                       fieldName="Firstname__c"
                                        onchange="{!c.handleFieldChange}"/>
                     </div>
                     
@@ -33,6 +37,7 @@
                                        label="生年月日"
                                        value="{!v.student.Birthday__c}"
                                        required="true"
+                                       fieldName="Birthday__c"
                                        onchange="{!c.handleFieldChange}"/>
                     </div>
                     
@@ -42,6 +47,7 @@
                                           options="{!v.genderOptions}"
                                           placeholder="--なし--"
                                           required="true"
+                                          fieldName="Gender__c"
                                           onchange="{!c.handleFieldChange}"/>
                     </div>
                     
@@ -51,6 +57,7 @@
                                           options="{!v.classOptions}"
                                           placeholder="--なし--"
                                           required="true"
+                                          fieldName="Class_look__c"
                                           onchange="{!c.handleFieldChange}"/>
                     </div>
                     
@@ -60,6 +67,7 @@
                                           value="{!v.student.LearningStatus__c}"
                                           options="{!v.statusOptions}"
                                           required="true"
+                                          fieldName="LearningStatus__c"
                                           onchange="{!c.handleFieldChange}"
                                           messageWhenValueMissing="このフィールドは必須です。"/>
                     </div>
@@ -67,7 +75,7 @@
                 
                 <div class="slds-m-top_medium slds-text-align_right">
                     <lightning:button label="キャンセル" 
-                                      onclick="{!c.handleClose}" 
+                                      onclick="{!c.handleCancel}" 
                                       class="slds-m-right_x-small"/>
                     <lightning:button label="保存" 
                                       variant="brand" 

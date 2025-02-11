@@ -1,2 +1,2 @@
 <aura:event type="COMPONENT" description="Event to close modal">
-</aura:event> 
+</aura:event>

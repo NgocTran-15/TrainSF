@@ -1,0 +1,89 @@
+<template>
+    <div class="detail-form-container">
+        <lightning-card>
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+            </template>
+
+            <template if:true={error}>
+                <div class="slds-text-color_error slds-p-around_small">
+                    {error.body.message}
+                </div>
+            </template>
+
+            <template if:false={isLoading}>
+                <div class="slds-grid slds-gutters">
+                    <!-- Left Column -->
+                    <div class="slds-col slds-size_1-of-2">
+                        <div class="slds-form-element slds-m-bottom_small">
+                            <label class="slds-form-element__label">学生コード</label>
+                            <div class="slds-form-element__control">
+                                <div class="slds-form-element__static">{student.StudentCode__c}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="slds-form-element slds-m-bottom_small">
+                            <label class="slds-form-element__label">姓</label>
+                            <div class="slds-form-element__control">
+                                <div class="slds-form-element__static">{student.Lastname__c}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="slds-form-element slds-m-bottom_small">
+                            <label class="slds-form-element__label">名</label>
+                            <div class="slds-form-element__control">
+                                <div class="slds-form-element__static">{student.Firstname__c}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="slds-form-element slds-m-bottom_small">
+                            <label class="slds-form-element__label">生年月日</label>
+                            <div class="slds-form-element__control">
+                                <div class="slds-form-element__static">
+                                    <lightning-formatted-date-time 
+                                        value={student.Birthday__c}
+                                        year="numeric"
+                                        month="2-digit"
+                                        day="2-digit">
+                                    </lightning-formatted-date-time>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Column -->
+                    <div class="slds-col slds-size_1-of-2">
+                        <div class="slds-form-element slds-m-bottom_small">
+                            <label class="slds-form-element__label">性別</label>
+                            <div class="slds-form-element__control">
+                                <div class="slds-form-element__static">{student.Gender__c}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="slds-form-element slds-m-bottom_small">
+                            <label class="slds-form-element__label">クラス</label>
+                            <div class="slds-form-element__control">
+                                <div class="slds-form-element__static">{className}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="slds-form-element slds-m-bottom_small">
+                            <label class="slds-form-element__label">Status</label>
+                            <div class="slds-form-element__control">
+                                <div class="slds-form-element__static">{student.LearningStatus__c}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="slds-modal__footer">
+                    <lightning-button 
+                        label="閉じる"
+                        onclick={handleClose}
+                        variant="neutral">
+                    </lightning-button>
+                </div>
+            </template>
+        </lightning-card>
+    </div>
+</template>

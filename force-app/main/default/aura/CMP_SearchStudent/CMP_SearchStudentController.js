@@ -90,30 +90,35 @@
     },
     
     handleEdit : function(component, event, helper) {
-        var studentId = event.getSource().get("v.value");
-        console.log('Edit Student ID:', studentId);
-        
-        var action = component.get("c.getStudent");
-        action.setParams({
-            recordId: studentId
-        });
-        
-        action.setCallback(this, function(response) {
-            var state = response.getState();
-            if (state === "SUCCESS") {
-                var student = response.getReturnValue();
-                console.log('Retrieved Student for Edit:', student);
-                if (student) {
-                    component.set("v.selectedStudent", student);
-                    component.set("v.showEditModal", true);
+        try {
+            var studentId = event.getSource().get("v.value");
+            console.log('Edit Student ID:', studentId);
+            
+            var action = component.get("c.getStudent");
+            action.setParams({
+                recordId: studentId
+            });
+            
+            action.setCallback(this, function(response) {
+                var state = response.getState();
+                if (state === "SUCCESS") {
+                    var student = response.getReturnValue();
+                    console.log('Retrieved Student for Edit:', student);
+                    if (student) {
+                        component.set("v.selectedStudent", student);
+                        component.set("v.showEditModal", true);
+                    }
+                } else {
+                    console.error('Error:', response.getError());
+                    helper.showToast('Error', '学生データの取得に失敗しました。', 'error');
                 }
-            } else {
-                console.error('Error:', response.getError());
-                helper.showToast('Error', 'Failed to retrieve student details', 'error');
-            }
-        });
-        
-        $A.enqueueAction(action);
+            });
+            
+            $A.enqueueAction(action);
+        } catch(error) {
+            console.error('Error in handleEdit:', error);
+            helper.showToast('Error', '予期せぬエラーが発生しました。', 'error');
+        }
     },
     
     handleDelete : function(component, event, helper) {
@@ -259,5 +264,13 @@
                                  component.get("v.birthDate"));
         
         component.set("v.hasSearchCriteria", hasSearchCriteria);
+    },
+    
+    handleModalClose : function(component, event, helper) {
+        // Handler chung cho cả create và update
+        component.set("v.showCreateModal", false);
+        component.set("v.showEditModal", false);
+        component.set("v.selectedStudent", null);
+        helper.search(component);
     }
 })

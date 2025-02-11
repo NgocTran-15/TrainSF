@@ -1,33 +1,26 @@
 ({
     doInit : function(component, event, helper) {
-        // First load student data
-        var action = component.get("c.getStudent");
-        action.setParams({
-            recordId: component.get("v.recordId")
-        });
-        
-        action.setCallback(this, function(response) {
-            if (response.getState() === "SUCCESS") {
-                var student = response.getReturnValue();
-                console.log('Loaded student data:', student);
-                
-                // Store original status
-                var originalStatus = student.LearningStatus__c;
-                component.set("v.student", student);
-                
-                // Then load picklist values
-                helper.loadPicklistValues(component).then(function() {
-                    // Restore original status
-                    var updatedStudent = component.get("v.student");
-                    if (updatedStudent) {
-                        updatedStudent.LearningStatus__c = originalStatus;
-                        console.log('Setting status back to:', originalStatus);
-                        component.set("v.student", updatedStudent);
-                    }
-                });
+        // Load all picklist values first
+        Promise.all([
+            helper.loadGenderOptions(component),
+            helper.loadClassOptions(component),
+            helper.loadLearningStatusOptions(component)
+        ]).then(function() {
+            // After loading picklist values, get the student data
+            var student = component.get("v.student");
+            if (student) {
+                console.log('Initial student data:', student);
+                // Force refresh of the UI
+                component.set("v.student", Object.assign({}, student));
             }
+            console.log('Loaded options:', {
+                gender: component.get("v.genderOptions"),
+                class: component.get("v.classOptions"),
+                status: component.get("v.statusOptions")
+            });
+        }).catch(function(error) {
+            console.error('Error in initialization:', error);
         });
-        $A.enqueueAction(action);
     },
     
     handleFieldChange : function(component, event, helper) {
@@ -36,8 +29,11 @@
         console.log('Field changed:', fieldName, value);
         
         var student = component.get("v.student");
-        student[fieldName] = value;
-        component.set("v.student", student);
+        if (student) {
+            student[fieldName] = value;
+            component.set("v.student", student);
+            console.log('Updated student:', student);
+        }
     },
     
     handleSave : function(component, event, helper) {
@@ -52,11 +48,10 @@
         action.setCallback(this, function(response) {
             var state = response.getState();
             if (state === "SUCCESS") {
-                helper.showToast('Success', '学生が正常に更新されました。', 'success');
-                var closeModal = component.get("v.closeModal");
-                if (closeModal) {
-                    $A.enqueueAction(closeModal);
-                }
+                helper.showToast('Success', '更新成功', 'success');
+                // Sửa lại thành Component Event
+                var closeModalEvent = component.getEvent("closeModalEvent");
+                closeModalEvent.fire();
             } else if (state === "ERROR") {
                 var errors = response.getError();
                 if (errors && errors[0] && errors[0].message) {
@@ -71,16 +66,18 @@
     },
     
     handleCancel : function(component, event, helper) {
-        var onclose = component.get("v.onclose");
-        if (onclose) {
-            onclose.fire(); // Fire the onclose event to close the modal
-        }
+        // Fire Component Event
+        var closeModalEvent = component.getEvent("closeModalEvent");
+        closeModalEvent.fire();
     },
     
     handleClose : function(component, event, helper) {
-        var closeModal = component.get("v.closeModal");
-        if (closeModal) {
-            $A.enqueueAction(closeModal);
-        }
+        var closeModalEvent = component.getEvent("closeModalEvent");
+        closeModalEvent.fire();
+    },
+
+    fireCloseModalEvent : function(component, event, helper) {
+        var closeModalEvent = component.getEvent("closeModalEvent"); // ✅ 
+        closeModalEvent.fire();
     }
 })

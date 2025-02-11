@@ -13,7 +13,7 @@ public with sharing class CMP_SearchStudentCtrl {
         // Initialize pagination with Custom Setting values
         pageSize = Integer.valueOf(studentManageSetting.S_RecordPerPage__c) > 0 
                   ? Integer.valueOf(studentManageSetting.S_RecordPerPage__c) 
-                  : 6; // Default value if not set
+                  : 10; // Default value if not set
         maxRecords = Integer.valueOf(studentManageSetting.S_MaxRecord__c) > 0 
                     ? Integer.valueOf(studentManageSetting.S_MaxRecord__c) 
                     : 10000; // Default value if not set

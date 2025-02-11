@@ -88,8 +88,12 @@ public with sharing class CMP_UpdateStudentCtrl {
                 WHERE Id = :recordId
             ];
             
-            // Log cho debug
-            System.debug('Original Learning Status: ' + student.LearningStatus__c);
+            // Log for debugging
+            System.debug('Retrieved student: ' + student);
+            System.debug('Gender: ' + student.Gender__c);
+            System.debug('Class: ' + student.Class_look__c);
+            System.debug('Learning Status: ' + student.LearningStatus__c);
+            
             return student;
         } catch(Exception e) {
             throw new AuraHandledException(e.getMessage());

@@ -2,7 +2,6 @@
     <!-- Attributes -->
     <aura:attribute name="students" type="Object[]"/>
     <aura:attribute name="pageSize" type="Integer" default="10"/>
-    <aura:registerEvent name="CloseModalEvent" type="c:CloseModalEvent"/>
     <aura:attribute name="pageNumber" type="Integer" default="1"/>
     <aura:attribute name="totalPages" type="Integer" default="0"/>
     <aura:attribute name="totalRecords" type="Integer" default="0"/>
@@ -38,7 +37,10 @@
 
     <!-- Handler -->
     <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
-    
+
+    <!-- Giữ lại một handler duy nhất cho cả Create và Update -->
+    <aura:handler name="closeModalEvent" event="c:CloseModalEvent" action="{!c.handleModalClose}"/>
+
     <!-- Search Form -->
     <div class="slds-card">
         <div class="slds-card__header">
@@ -163,6 +165,7 @@
                                                         title="編集"
                                                         value="{!student.Id}"
                                                         onclick="{!c.handleEdit}"
+                                                        variant="border-filled"
                                                         class="slds-button slds-button_icon slds-button_icon-border"/>
                                     <lightning:buttonIcon iconName="utility:delete" 
                                                         title="削除"
@@ -246,8 +249,7 @@
                                         class="slds-modal__close"/>
                 </header>
                 <div class="slds-modal__content slds-p-around_medium">
-                    <c:CMP_CreateStudent aura:id="createStudentCmp" 
-                                       closeModal="{!c.closeCreateModal}"/>
+                    <c:CMP_CreateStudent aura:id="createStudentCmp"/>
                 </div>
             </div>
         </section>
@@ -288,13 +290,12 @@
                                         class="slds-modal__close"/>
                 </header>
                 <div class="slds-modal__content slds-p-around_medium">
-                    <c:CMP_UpdateStudent student="{!v.selectedStudent}" 
-                                       closeModal="{!c.closeEditModal}"/>
+                    <c:CMP_UpdateStudent student="{!v.selectedStudent}"
+                                       recordId="{!v.selectedStudent.Id}"/>
                 </div>
             </div>
         </section>
         <div class="slds-backdrop slds-backdrop_open"></div>
     </aura:if>
 
-    <aura:registerEvent name="closeCreateModal" type="c:CloseModalEvent"/>
 </aura:component>

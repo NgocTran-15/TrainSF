@@ -1,5 +1,7 @@
 <aura:component controller="CMP_CreateStudentCtrl" 
                implements="force:appHostable,flexipage:availableForAllPageTypes">    
+    <aura:registerEvent name="closeModalEvent" type="c:CloseModalEvent"/>
+    
     <aura:attribute name="student" type="Object" default="{ 
         'sobjectType': 'Student__c',
         'Lastname__c': '',
@@ -16,7 +18,6 @@
     <aura:attribute name="recordId" type="String" default="a00dL00000ZK8yBQAT"/>
     <aura:attribute name="isEdit" type="Boolean" default="false"/>
     <aura:attribute name="errorMessages" type="Object" default="{}"/>
-    <aura:attribute name="closeModal" type="Aura.Action"/>
     <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
 
     <aura:if isTrue="{!v.showSpinner}">
@@ -105,7 +106,6 @@
             <div class="slds-text-align_right">
                 <lightning:button label="キャンセル"
                                 onclick="{!c.handleCancel}"
-                                variant="neutral"
                                 class="slds-m-right_x-small"/>
                 <lightning:button label="保存"
                                 variant="brand"

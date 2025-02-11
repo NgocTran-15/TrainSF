@@ -29,16 +29,9 @@
             if (state === "SUCCESS") {
                 helper.showToast('Success', '学生が正常に作成されました。', 'success');
                 
-                // Chuyển hướng về trang search sau 2 giây
-                window.setTimeout(
-                    $A.getCallback(function() {
-                        var navEvt = $A.get("e.force:navigateToComponent");
-                        navEvt.setParams({
-                            componentDef: "c:CMP_SearchStudent"
-                        });
-                        navEvt.fire();
-                    }), 2000
-                );
+                // Fire event thay vì gọi closeModal
+                var closeModalEvent = component.getEvent("closeModalEvent");
+                closeModalEvent.fire();
             } else if (state === "ERROR") {
                 var errors = response.getError();
                 helper.showToast('Error', errors[0].message, 'error');
@@ -48,7 +41,7 @@
         $A.enqueueAction(action);
         
         // After successful save, fire the close event
-        var closeEvent = $A.get("e.c:CloseModalEvent");
+        var closeEvent = component.getEvent("closeModalEvent");
         closeEvent.fire();
     },
 
@@ -66,9 +59,8 @@
     },
 
     handleCancel: function(component, event, helper) {
-        var closeModal = component.get("v.closeModal");
-        if (closeModal) {
-            $A.enqueueAction(closeModal);
-        }
+        // component event
+        var closeModalEvent = component.getEvent("closeModalEvent");
+        closeModalEvent.fire();
     }
 })

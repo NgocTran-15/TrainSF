@@ -7,12 +7,23 @@
             });
             
             action.setCallback(this, function(response) {
-                var state = response.getState();
-                if (state === "SUCCESS") {
-                    component.set("v.student", response.getReturnValue());
-                    resolve();
+                if (response.getState() === "SUCCESS") {
+                    var student = response.getReturnValue();
+                    console.log('Student data from server:', student);
+                    
+                    if (student) {
+                        // Make sure all required fields exist
+                        student = Object.assign({}, student, {
+                            Gender__c: student.Gender__c || '',
+                            Class_look__c: student.Class_look__c || '',
+                            LearningStatus__c: student.LearningStatus__c || ''
+                        });
+                    }
+                    
+                    component.set("v.student", student);
+                    resolve(student);
                 } else {
-                    console.error('Error loading student');
+                    console.error('Error loading student:', response.getError());
                     reject(response.getError());
                 }
             });
