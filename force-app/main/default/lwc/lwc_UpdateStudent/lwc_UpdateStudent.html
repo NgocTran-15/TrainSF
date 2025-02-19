@@ -1,0 +1,67 @@
+<template>
+    <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+        <div class="slds-modal__container">
+            <header class="slds-modal__header">
+                <h2 class="slds-text-heading_medium">学生を編集</h2>
+                <lightning-button-icon icon-name="utility:close"
+                                     onclick={handleClose}
+                                     alternative-text="Close"
+                                     variant="bare-inverse"
+                                     class="slds-modal__close"></lightning-button-icon>
+            </header>
+            <div class="slds-modal__content slds-p-around_medium">
+                <lightning-messages></lightning-messages>
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-col slds-size_1-of-2 slds-p-horizontal_small">
+                        <lightning-input label="学生コード"
+                                       required
+                                       value={studentCode}
+                                       onchange={handleFieldChange}></lightning-input>
+                        <lightning-input label="姓"
+                                       required
+                                       value={lastName}
+                                       onchange={handleFieldChange}></lightning-input>
+                        <lightning-input label="名"
+                                       required
+                                       value={firstName}
+                                       onchange={handleFieldChange}></lightning-input>
+                    </div>
+                    <div class="slds-col slds-size_1-of-2 slds-p-horizontal_small">
+                        <lightning-input type="date"
+                                       label="生年月日"
+                                       required
+                                       value={birthDate}
+                                       onchange={handleFieldChange}></lightning-input>
+                        <lightning-combobox label="性別"
+                                          required
+                                          value={gender}
+                                          options={genderOptions}
+                                          onchange={handleFieldChange}></lightning-combobox>
+                        <lightning-combobox label="クラス"
+                                          required
+                                          value={classId}
+                                          options={classOptions}
+                                          onchange={handleFieldChange}></lightning-combobox>
+                        <lightning-combobox label="学習状況"
+                                          value={learningStatus}
+                                          options={learningStatusOptions}
+                                          onchange={handleFieldChange}></lightning-combobox>
+                    </div>
+                </div>
+            </div>
+            <footer class="slds-modal__footer">
+                <lightning-button label="キャンセル"
+                                onclick={handleClose}></lightning-button>
+                <lightning-button label="保存"
+                                variant="brand"
+                                onclick={handleSave}
+                                class="slds-m-left_x-small"></lightning-button>
+            </footer>
+        </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open"></div>
+
+    <template if:true={showSpinner}>
+        <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+    </template>
+</template>

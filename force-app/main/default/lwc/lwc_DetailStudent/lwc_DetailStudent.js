@@ -1,28 +1,22 @@
-import { LightningElement, wire } from 'lwc';
-import getStudent from '@salesforce/apex/lwc_DetailStudentCtrl.getStudent';
+import { LightningElement, api } from 'lwc';
 
 export default class Lwc_DetailStudent extends LightningElement {
-    recordId = 'a00dL00000ZK8yBQAT';
-    student = {};
-    error;
-    isLoading = true;
+    @api student;
 
-    @wire(getStudent, { recordId: '$recordId' })
-    wiredStudent({ error, data }) {
-        this.isLoading = false;
-        if (data) {
-            this.student = data;
-            this.error = undefined;
-        } else if (error) {
-            this.error = error;
-            this.student = {};
-        }
+    get hasStudent() {
+        return this.student != null;
     }
 
-    get className() {
-        return this.student?.Class_look__r?.Name || '';
+    // Computed getters for formatted values
+    get formattedBirthday() {
+        return this.student?.Birthday__c ? new Date(this.student.Birthday__c).toLocaleDateString() : '';
     }
-    
+
+    get formattedGender() {
+        return this.student?.Gender__c === 'Male' ? '男性' : 
+               this.student?.Gender__c === 'Female' ? '女性' : '';
+    }
+
     handleClose() {
         this.dispatchEvent(new CustomEvent('close'));
     }

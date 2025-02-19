@@ -1,10 +1,13 @@
-import { LightningElement, track, wire } from 'lwc';
+import { LightningElement, api, track, wire } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import createStudent from '@salesforce/apex/lwc_SearchStudentCtrl.createStudent';
+import updateStudent from '@salesforce/apex/lwc_SearchStudentCtrl.updateStudent';
 import getClassOptions from '@salesforce/apex/lwc_SearchStudentCtrl.getClassOptions';
-import getLearningStatusOptions from '@salesforce/apex/LWC_CreateStudentCtrl.getLearningStatusOptions';
 
-export default class Lwc_CreateStudent extends LightningElement {
+export default class Lwc_UpdateStudent extends LightningElement {
+    @api recordId;
+    @api student;
+
+    @track studentCode = '';
     @track lastName = '';
     @track firstName = '';
     @track birthDate = null;
@@ -12,12 +15,33 @@ export default class Lwc_CreateStudent extends LightningElement {
     @track classId = '';
     @track learningStatus = '';
     @track classOptions = [];
-    @track learningStatusOptions = [];
+
+    connectedCallback() {
+        if (this.student) {
+            this.studentCode = this.student.StudentCode__c;
+            this.lastName = this.student.Lastname__c;
+            this.firstName = this.student.Firstname__c;
+            this.birthDate = this.student.Birthday__c;
+            this.gender = this.student.Gender__c;
+            this.classId = this.student.Class_look__c;
+            this.learningStatus = this.student.LearningStatus__c;
+        }
+    }
 
     get genderOptions() {
         return [
             { label: '男性', value: 'Male' },
             { label: '女性', value: 'Female' }
+        ];
+    }
+
+    get learningStatusOptions() {
+        return [
+            { label: '--なし--', value: '' },
+            { label: '優秀', value: 'Excellent' },
+            { label: '良い', value: 'Good' },
+            { label: '普通', value: 'Average' },
+            { label: '要努力', value: 'Poor' }
         ];
     }
 
@@ -30,20 +54,14 @@ export default class Lwc_CreateStudent extends LightningElement {
         }
     }
 
-    @wire(getLearningStatusOptions)
-    wiredLearningStatusOptions({ error, data }) {
-        if (data) {
-            this.learningStatusOptions = data;
-        } else if (error) {
-            this.showToast('Error', '学習状況オプションの読み込みに失敗しました。', 'error');
-        }
-    }
-
     handleFieldChange(event) {
         const field = event.target.label;
         const value = event.target.value;
         
         switch(field) {
+            case '学生コード':
+                this.studentCode = value;
+                break;
             case '姓':
                 this.lastName = value;
                 break;
@@ -72,7 +90,8 @@ export default class Lwc_CreateStudent extends LightningElement {
 
         try {
             const studentData = {
-                // Only include necessary fields, excluding StudentCode__c
+                Id: this.recordId,
+                StudentCode__c: this.studentCode,
                 Lastname__c: this.lastName,
                 Firstname__c: this.firstName,
                 Birthday__c: this.birthDate,
@@ -81,8 +100,8 @@ export default class Lwc_CreateStudent extends LightningElement {
                 LearningStatus__c: this.learningStatus
             };
 
-            await createStudent({ studentData: studentData });
-            this.showToast('Success', '学生が正常に作成されました。', 'success');
+            await updateStudent({ studentData: studentData });
+            this.showToast('Success', '学生が正常に更新されました。', 'success');
             this.dispatchEvent(new CustomEvent('refresh'));
             this.handleClose();
         } catch (error) {
