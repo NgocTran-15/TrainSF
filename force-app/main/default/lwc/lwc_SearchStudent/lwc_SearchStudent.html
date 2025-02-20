@@ -100,7 +100,7 @@
                                                onchange={handleCheckboxChange}></lightning-input>
                             </td>
                             <td>
-                                <a onclick={handleView} data-id={student.Id}>{student.StudentCode__c}</a>
+                                <a href="javascript:void(0);" onclick={handleView} data-id={student.Id}>{student.StudentCode__c}</a>
                             </td>
                             <td>{student.Lastname__c}</td>
                             <td>{student.Firstname__c}</td>
@@ -116,16 +116,20 @@
                                 <div class="slds-button-group">
                                     <lightning-button-icon icon-name="utility:preview" 
                                                          title="表示"
-                                                         value={student.Id}
+                                                         data-id={student.Id}
                                                          onclick={openDetailModal}
                                                          variant="border-filled"
-                                                         class="slds-button slds-button_icon slds-button_icon-border"></lightning-button-icon>
+                                                         type="button"
+                                                         class="slds-button slds-button_icon slds-button_icon-border">
+                                    </lightning-button-icon>
                                     <lightning-button-icon icon-name="utility:edit" 
                                                          title="編集"
-                                                         value={student.Id}
+                                                         data-id={student.Id}
                                                          onclick={handleEdit}
+                                                         type="button"
                                                          variant="border-filled"
-                                                         class="slds-button slds-button_icon slds-button_icon-border"></lightning-button-icon>
+                                                         class="slds-button slds-button_icon slds-button_icon-border">
+                                    </lightning-button-icon>
                                     <lightning-button-icon icon-name="utility:delete" 
                                                          title="削除"
                                                          value={student.Id}
@@ -150,13 +154,16 @@
                                  disabled={isFirstPage}
                                  class="slds-m-left_x-small"></lightning-button>
                 
-                <template for:each={pageNumbers} for:item="num">
-                    <lightning-button key={num}
-                                    label={num}
-                                    data-page={num}
-                                    variant={getButtonVariant}
-                                    onclick={handlePageChange}
-                                    class="slds-m-left_x-small"></lightning-button>
+                <template for:each={pageNumbers} for:item="page" for:index="index">
+                    <lightning-button 
+                        key={page.number}
+                        label={page.number}
+                        data-page={page.number}
+                        variant={page.variant}
+                        disabled={page.isDisabled}
+                        onclick={handlePageChange}
+                        class="slds-m-left_x-small">
+                    </lightning-button>
                 </template>
                 
                 <lightning-button label="＞" 
@@ -233,7 +240,9 @@
     <template if:true={showUpdateModal}>
         <c-lwc_-update-student
             record-id={selectedStudentId}
-            onclose={closeUpdateModal}>
+            student={selectedStudent}
+            onclose={closeUpdateModal}
+            onrefresh={refreshData}>
         </c-lwc_-update-student>
     </template>
 </template>

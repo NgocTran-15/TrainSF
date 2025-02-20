@@ -54,66 +54,50 @@ public with sharing class LWC_CreateStudentCtrl {
 
     @AuraEnabled
     public static String createStudent(Student__c student) {
-        Savepoint sp = Database.setSavepoint();
-        
         try {
-            // Log input data
+            // Debug incoming data
             System.debug('Received student data: ' + JSON.serializePretty(student));
             
-            // Validate required fields
+            if(student == null) {
+                throw new AuraHandledException('Student data is null');
+            }
+
+            // Create new Student__c to ensure clean data
+            Student__c newStudent = new Student__c();
+            newStudent.FirstName__c = student.FirstName__c;
+            newStudent.LastName__c = student.LastName__c;
+            newStudent.Birthday__c = student.Birthday__c;
+            newStudent.Gender__c = student.Gender__c;
+            newStudent.Class_look__c = student.Class_look__c;
+            newStudent.LearningStatus__c = student.LearningStatus__c;
+
+            // Validate required fields with specific messages
             List<String> missingFields = new List<String>();
             
-            if (String.isBlank(student.Lastname__c)) {
-                missingFields.add('姓');
-            }
-            if (String.isBlank(student.Firstname__c)) {
-                missingFields.add('名');
-            }
-            if (student.Birthday__c == null) {
-                missingFields.add('生年月日');
-            }
-            if (String.isBlank(student.Gender__c)) {
-                missingFields.add('性別');
-            }
-            if (String.isBlank(student.Class_look__c)) {
-                missingFields.add('クラス');
-            }
-            if (String.isBlank(student.LearningStatus__c)) {
-                missingFields.add('ステータス');
-            }
+            if (String.isBlank(newStudent.FirstName__c)) missingFields.add('名(FirstName)');
+            if (String.isBlank(newStudent.LastName__c)) missingFields.add('姓(LastName)');
+            if (newStudent.Birthday__c == null) missingFields.add('生年月日(Birthday)');
+            if (String.isBlank(newStudent.Gender__c)) missingFields.add('性別(Gender)');
+            if (String.isBlank(newStudent.Class_look__c)) missingFields.add('クラス(Class)');
+            if (String.isBlank(newStudent.LearningStatus__c)) missingFields.add('学習状況(LearningStatus)');
             
             if (!missingFields.isEmpty()) {
-                throw new AuraHandledException('以下のフィールドは必須です: ' + String.join(missingFields, ', '));
+                throw new AuraHandledException('次のフィールドは必須です: ' + String.join(missingFields, ', '));
             }
 
-            // Validate age
-            if (student.Birthday__c != null) {
-                Date today = Date.today();
-                Integer age = today.year() - student.Birthday__c.year();
-                if (today.month() < student.Birthday__c.month() || 
-                    (today.month() == student.Birthday__c.month() && 
-                     today.day() < student.Birthday__c.day())) {
-                    age--;
-                }
-                if (age < 18) {
-                    throw new AuraHandledException('学生は18歳以上である必要があります。');
-                }
-            }
+            // Debug prepared data
+            System.debug('Preparing to insert student: ' + JSON.serializePretty(newStudent));
 
-            try {
-                insert student;
-                System.debug('Student created successfully. Id: ' + student.Id);
-                return student.Id;
-            } catch (DmlException e) {
-                Database.rollback(sp);
-                System.debug('DML Error: ' + e.getMessage());
-                throw new AuraHandledException('保存に失敗しました: ' + e.getMessage());
-            }
-            
+            insert newStudent;
+            return newStudent.Id;
+
+        } catch (DmlException e) {
+            System.debug('DML Error: ' + e.getMessage());
+            System.debug('DML Error Stack: ' + e.getStackTraceString());
+            throw new AuraHandledException('データベースエラー: ' + e.getDmlMessage(0));
         } catch (Exception e) {
-            Database.rollback(sp);
-            System.debug('Error in createStudent: ' + e.getMessage());
-            System.debug('Stack trace: ' + e.getStackTraceString());
+            System.debug('General Error: ' + e.getMessage());
+            System.debug('Error Stack: ' + e.getStackTraceString());
             throw new AuraHandledException(e.getMessage());
         }
     }

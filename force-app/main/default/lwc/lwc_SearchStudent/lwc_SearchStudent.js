@@ -25,6 +25,7 @@ export default class Lwc_SearchStudent extends LightningElement {
     @track isLoading = false;
     @track showUpdateModal = false;
     @track selectedStudentId;
+    @track hasSearched = false; // Add new track property to track if search was performed
 
     // Search filters
     @track studentCode = '';
@@ -106,21 +107,34 @@ export default class Lwc_SearchStudent extends LightningElement {
                 this.birthDate = value;
                 break;
         }
+
+        // Reset hasSearched flag when user starts entering new search criteria
+        this.hasSearched = false;
     }
 
     handleSearch() {
+        // Reset selection when performing new search
+        this.selectedIds = [];
+        this.selectedAll = false;
         this.pageNumber = 1;
+        this.hasSearched = true;
         this.search();
     }
 
     handleClear() {
+        // Clear search criteria
         this.studentCode = '';
         this.searchName = '';
         this.classCode = '';
         this.gender = '';
         this.birthDate = null;
-        this.pageNumber = 1;
-        this.search();
+        
+        // Reset the input fields
+        const inputs = this.template.querySelectorAll('lightning-input, lightning-combobox');
+        inputs.forEach(input => {
+            input.value = '';
+        });
+        // Don't trigger search or reset pagination
     }
 
     handleCreate() {
@@ -128,14 +142,42 @@ export default class Lwc_SearchStudent extends LightningElement {
     }
 
     handleEdit(event) {
-        this.selectedStudentId = event.target.value;
-        this.showUpdateModal = true;
+        event.preventDefault();
+        event.stopPropagation();
+        const studentId = event.target.dataset.id;
+        // Find the student in the existing data
+        const student = this.students.find(s => s.Id === studentId);
+        if (student) {
+            this.selectedStudent = student;
+            this.selectedStudentId = studentId;
+            this.showUpdateModal = true;
+        }
+    }
+
+    async loadStudentForEdit(studentId) {
+        try {
+            this.isLoading = true;
+            const student = await getStudent({ recordId: studentId });
+            if (student) {
+                this.selectedStudent = student;
+                this.selectedStudentId = studentId;
+                this.showUpdateModal = true;
+            }
+        } catch (error) {
+            this.showToast('Error', '学生データの取得に失敗しました。', 'error');
+        } finally {
+            this.isLoading = false;
+        }
     }
 
     closeUpdateModal() {
         this.showUpdateModal = false;
         this.selectedStudentId = null;
-        this.refreshData();
+    }
+
+    refreshData() {
+        // Only refresh data when explicitly called
+        this.search();
     }
 
     handleDelete(event) {
@@ -153,13 +195,42 @@ export default class Lwc_SearchStudent extends LightningElement {
     }
 
     handleView(event) {
+        event.preventDefault();
+        event.stopPropagation();
         const studentId = event.target.dataset.id;
-        this.loadStudent(studentId);
+        // Find the student in the existing data
+        const student = this.students.find(s => s.Id === studentId);
+        if (student) {
+            this.selectedStudent = student;
+            this.showViewModal = true;
+        }
+    }
+
+    async loadStudentForView(studentId) {
+        try {
+            this.isLoading = true;
+            const student = await getStudent({ recordId: studentId });
+            if (student) {
+                this.selectedStudent = student;
+                this.showViewModal = true;
+            }
+        } catch (error) {
+            this.showToast('Error', '学生データの取得に失敗しました。', 'error');
+        } finally {
+            this.isLoading = false;
+        }
     }
 
     openDetailModal(event) {
-        const studentId = event.target.value;
-        this.loadStudent(studentId);
+        event.preventDefault();
+        event.stopPropagation();
+        const studentId = event.target.dataset.id;
+        // Find the student in the existing data
+        const student = this.students.find(s => s.Id === studentId);
+        if (student) {
+            this.selectedStudent = student;
+            this.showViewModal = true;
+        }
     }
 
     // Pagination handling
@@ -231,17 +302,17 @@ export default class Lwc_SearchStudent extends LightningElement {
             });
 
             if (result) {
+                // Reset selected state for all students
                 this.students = result.students.map(student => ({
                     ...student,
-                    selected: this.selectedIds.includes(student.Id)
+                    selected: false // Always start with unselected state for new search results
                 }));
                 this.totalRecords = result.totalRecords;
                 this.totalPages = result.totalPages;
                 this.calculatePageNumbers();
                 
-                // Update selectedAll status
-                this.selectedAll = this.students.length > 0 && 
-                                 this.students.every(student => student.selected);
+                // Reset selection status since this is a new search
+                this.selectedAll = false;
             }
         } catch (error) {
             this.showToast('Error', error.body.message, 'error');
@@ -289,7 +360,6 @@ export default class Lwc_SearchStudent extends LightningElement {
     // Helper methods
     calculatePageNumbers() {
         const maxPagesToShow = 5;
-        const pageNumbers = [];
         let startPage = Math.max(1, this.pageNumber - Math.floor(maxPagesToShow / 2));
         let endPage = Math.min(this.totalPages, startPage + maxPagesToShow - 1);
 
@@ -297,25 +367,15 @@ export default class Lwc_SearchStudent extends LightningElement {
             startPage = Math.max(1, endPage - maxPagesToShow + 1);
         }
 
-        for (let i = startPage; i <= endPage; i++) {
-            pageNumbers.push(i);
-        }
-        this.pageNumbers = pageNumbers;
-    }
-
-    getVariant(event) {
-        const num = parseInt(event.target.dataset.page, 10);
-        return num === this.pageNumber ? 'brand' : 'neutral';
-    }
-
-    getPageButtonVariant(event) {
-        const pageNum = parseInt(event.target.dataset.page, 10);
-        return pageNum === this.pageNumber ? 'brand' : 'neutral';
-    }
-
-    getButtonVariant(event) {
-        const buttonPage = parseInt(event.target.dataset.page, 10);
-        return buttonPage === this.pageNumber ? 'brand' : 'neutral';
+        // Create page objects with computed properties
+        this.pageNumbers = Array.from({ length: endPage - startPage + 1 }, (_, i) => {
+            const pageNum = startPage + i;
+            return {
+                number: pageNum,
+                isDisabled: pageNum === this.pageNumber,
+                variant: pageNum === this.pageNumber ? 'brand' : 'neutral'
+            };
+        });
     }
 
     showToast(title, message, variant) {
@@ -329,5 +389,47 @@ export default class Lwc_SearchStudent extends LightningElement {
 
     refreshData() {
         this.search();
+    }
+
+    handleSelectAll(event) {
+        const selectAll = event.target.checked;
+        this.selectedAll = selectAll;
+        
+        // Update all student records
+        this.students = this.students.map(student => ({
+            ...student,
+            selected: selectAll
+        }));
+
+        // Update selectedIds array
+        if (selectAll) {
+            this.selectedIds = this.students.map(student => student.Id);
+        } else {
+            this.selectedIds = [];
+        }
+    }
+
+    handleCheckboxChange(event) {
+        const studentId = event.target.dataset.id;
+        const isChecked = event.target.checked;
+        
+        // Update the selected status in students array
+        this.students = this.students.map(student => {
+            if (student.Id === studentId) {
+                return { ...student, selected: isChecked };
+            }
+            return student;
+        });
+
+        // Update selectedIds array
+        if (isChecked) {
+            this.selectedIds = [...this.selectedIds, studentId];
+        } else {
+            this.selectedIds = this.selectedIds.filter(id => id !== studentId);
+        }
+
+        // Update selectedAll status
+        this.selectedAll = this.students.length > 0 && 
+                         this.students.every(student => student.selected);
     }
 }

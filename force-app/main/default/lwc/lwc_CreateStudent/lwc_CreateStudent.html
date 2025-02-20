@@ -9,51 +9,93 @@
                                      variant="bare-inverse"
                                      class="slds-modal__close"></lightning-button-icon>
             </header>
+
             <div class="slds-modal__content slds-p-around_medium">
-                <lightning-messages></lightning-messages>
+                <template if:true={showSpinner}>
+                    <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+                </template>
+
                 <div class="slds-form" style="width: 100%; max-width: 560px; margin: auto;">
-                    <lightning-input label="姓"
-                                   required
-                                   class="slds-m-bottom_small"
-                                   value={lastName}
-                                   onchange={handleFieldChange}></lightning-input>
-                    <lightning-input label="名"
-                                   required
-                                   class="slds-m-bottom_small"
-                                   value={firstName}
-                                   onchange={handleFieldChange}></lightning-input>
-                    <lightning-input type="date"
-                                   label="生年月日"
-                                   required
-                                   class="slds-m-bottom_small"
-                                   value={birthDate}
-                                   onchange={handleFieldChange}></lightning-input>
-                    <lightning-combobox label="性別"
-                                      required
-                                      class="slds-m-bottom_small"
-                                      value={gender}
-                                      options={genderOptions}
-                                      onchange={handleFieldChange}></lightning-combobox>
-                    <lightning-combobox label="クラス"
-                                      required
-                                      class="slds-m-bottom_small"
-                                      value={classId}
-                                      options={classOptions}
-                                      onchange={handleFieldChange}></lightning-combobox>
-                    <lightning-combobox label="学習状況"
-                                      class="slds-m-bottom_small"
-                                      value={learningStatus}
-                                      options={learningStatusOptions}
-                                      onchange={handleFieldChange}></lightning-combobox>
+                    <lightning-input 
+                        label="姓"
+                        data-field="Lastname__c"
+                        required
+                        value={student.Lastname__c}
+                        onchange={handleFieldChange}
+                        class="slds-m-bottom_small">
+                    </lightning-input>
+                    <div if:true={errorMessages.Lastname__c} class="slds-text-color_error slds-m-bottom_x-small">
+                        {errorMessages.Lastname__c}
+                    </div>
+
+                    <lightning-input 
+                        label="名"
+                        data-field="Firstname__c"
+                        required
+                        value={student.Firstname__c}
+                        onchange={handleFieldChange}
+                        class="slds-m-bottom_small">
+                    </lightning-input>
+
+                    <lightning-input 
+                        type="date"
+                        label="生年月日"
+                        required
+                        class="validate-field slds-m-bottom_small"
+                        data-field="Birthday__c"
+                        value={birthDate}
+                        message-when-value-missing="生年月日を入力してください。"
+                        onchange={handleFieldChange}>
+                    </lightning-input>
+
+                    <lightning-combobox 
+                        label="性別"
+                        required
+                        class="validate-field slds-m-bottom_small"
+                        data-field="Gender__c"
+                        value={gender}
+                        options={genderOptions}
+                        message-when-value-missing="性別を選択してください。"
+                        onchange={handleFieldChange}>
+                    </lightning-combobox>
+
+                    <lightning-combobox 
+                        label="クラス"
+                        required
+                        class="validate-field slds-m-bottom_small"
+                        data-field="Class_look__c"
+                        value={classId}
+                        options={classOptions}
+                        message-when-value-missing="クラスを選択してください。"
+                        onchange={handleFieldChange}>
+                    </lightning-combobox>
+
+                    <lightning-combobox 
+                        label="ステータス"
+                        data-field="LearningStatus__c"
+                        required
+                        value={student.LearningStatus__c}
+                        options={statusOptions}
+                        onchange={handleFieldChange}
+                        class="slds-m-bottom_small">
+                    </lightning-combobox>
+                    <div if:true={errorMessages.LearningStatus__c} class="slds-text-color_error slds-m-bottom_x-small">
+                        {errorMessages.LearningStatus__c}
+                    </div>
                 </div>
             </div>
+
             <footer class="slds-modal__footer">
-                <lightning-button label="キャンセル"
-                                onclick={handleClose}></lightning-button>
-                <lightning-button label="保存"
-                                variant="brand"
-                                onclick={handleSave}
-                                class="slds-m-left_x-small"></lightning-button>
+                <lightning-button 
+                    label="キャンセル"
+                    onclick={handleClose}
+                    class="slds-m-right_x-small">
+                </lightning-button>
+                <lightning-button 
+                    label="保存"
+                    variant="brand"
+                    onclick={handleSave}>
+                </lightning-button>
             </footer>
         </div>
     </section>

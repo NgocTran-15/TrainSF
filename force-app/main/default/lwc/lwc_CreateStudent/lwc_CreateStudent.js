@@ -1,107 +1,168 @@
 import { LightningElement, track, wire } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import createStudent from '@salesforce/apex/lwc_SearchStudentCtrl.createStudent';
-import getClassOptions from '@salesforce/apex/lwc_SearchStudentCtrl.getClassOptions';
-import getLearningStatusOptions from '@salesforce/apex/LWC_CreateStudentCtrl.getLearningStatusOptions';
+import createStudent from '@salesforce/apex/CMP_CreateStudentCtrl.createStudent';
+import getClassOptions from '@salesforce/apex/CMP_CreateStudentCtrl.getClassOptions';
+import getPicklistValues from '@salesforce/apex/CMP_CreateStudentCtrl.getPicklistValues';
 
 export default class Lwc_CreateStudent extends LightningElement {
-    @track lastName = '';
-    @track firstName = '';
-    @track birthDate = null;
-    @track gender = '';
-    @track classId = '';
-    @track learningStatus = '';
+    @track student = {
+        sobjectType: 'Student__c',
+        Lastname__c: '',
+        Firstname__c: '',
+        Birthday__c: null,
+        Gender__c: '',
+        Class_look__c: '',
+        LearningStatus__c: ''
+    };
+    @track errorMessages = {};
     @track classOptions = [];
-    @track learningStatusOptions = [];
+    @track statusOptions = [];
+    @track showSpinner = false;
+
+    // Remove connectedCallback and replace with async init
+    async connectedCallback() {
+        try {
+            await this.loadPicklistValues();
+            await this.loadClassOptionsData();
+        } catch (error) {
+            this.handleError(error);
+        }
+    }
+
+    // Add new method to load class options
+    async loadClassOptionsData() {
+        try {
+            const result = await getClassOptions();
+            this.classOptions = [
+                { label: '--なし--', value: '' },
+                ...result.map(opt => ({
+                    label: opt.label,
+                    value: opt.value
+                }))
+            ];
+        } catch (error) {
+            this.handleError(error);
+        }
+    }
 
     get genderOptions() {
         return [
+            { label: '--なし--', value: '' },
             { label: '男性', value: 'Male' },
             { label: '女性', value: 'Female' }
         ];
     }
 
-    @wire(getClassOptions)
-    wiredClassOptions({ error, data }) {
-        if (data) {
-            this.classOptions = data;
-        } else if (error) {
-            this.showToast('Error', 'クラスオプションの読み込みに失敗しました。', 'error');
-        }
-    }
-
-    @wire(getLearningStatusOptions)
-    wiredLearningStatusOptions({ error, data }) {
-        if (data) {
-            this.learningStatusOptions = data;
-        } else if (error) {
-            this.showToast('Error', '学習状況オプションの読み込みに失敗しました。', 'error');
+    async loadPicklistValues() {
+        try {
+            const result = await getPicklistValues({
+                objectType: 'Student__c',
+                fieldName: 'LearningStatus__c'
+            });
+            this.statusOptions = [
+                { label: '--なし--', value: '' },
+                ...result.map(opt => ({
+                    label: opt.label,
+                    value: opt.value
+                }))
+            ];
+        } catch (error) {
+            this.handleError(error);
         }
     }
 
     handleFieldChange(event) {
-        const field = event.target.label;
-        const value = event.target.value;
+        const field = event.target;
+        const fieldName = field.dataset.field;
+        this.student[fieldName] = field.value;
         
-        switch(field) {
-            case '姓':
-                this.lastName = value;
-                break;
-            case '名':
-                this.firstName = value;
-                break;
-            case '生年月日':
-                this.birthDate = value;
-                break;
-            case '性別':
-                this.gender = value;
-                break;
-            case 'クラス':
-                this.classId = value;
-                break;
-            case '学習状況':
-                this.learningStatus = value;
-                break;
+        // Clear error message when field changes
+        delete this.errorMessages[fieldName];
+        this.errorMessages = { ...this.errorMessages };
+
+        // Validate birthday immediately if changed
+        if (fieldName === 'Birthday__c') {
+            this.validateAge();
         }
     }
 
-    async handleSave() {
-        if (!this.validateFields()) {
-            return;
+    validateAge() {
+        if (this.student.Birthday__c) {
+            const today = new Date();
+            const birthDate = new Date(this.student.Birthday__c);
+            let age = today.getFullYear() - birthDate.getFullYear();
+            
+            if (today.getMonth() < birthDate.getMonth() || 
+                (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            
+            if (birthDate > today) {
+                this.errorMessages.Birthday__c = '生年月日は未来の日付にすることはできません。';
+                return false;
+            }
+            
+            if (age < 18) {
+                this.errorMessages.Birthday__c = '学生は18歳以上である必要があります。';
+                return false;
+            }
         }
-
-        try {
-            const studentData = {
-                // Only include necessary fields, excluding StudentCode__c
-                Lastname__c: this.lastName,
-                Firstname__c: this.firstName,
-                Birthday__c: this.birthDate,
-                Gender__c: this.gender,
-                Class_look__c: this.classId,
-                LearningStatus__c: this.learningStatus
-            };
-
-            await createStudent({ studentData: studentData });
-            this.showToast('Success', '学生が正常に作成されました。', 'success');
-            this.dispatchEvent(new CustomEvent('refresh'));
-            this.handleClose();
-        } catch (error) {
-            this.showToast('Error', error.body.message, 'error');
-        }
+        return true;
     }
 
     validateFields() {
-        const requiredFields = this.template.querySelectorAll('[required]');
         let isValid = true;
+        this.errorMessages = {};
 
-        requiredFields.forEach(field => {
-            if (!field.value) {
-                field.reportValidity();
+        // Required field validation
+        const requiredFields = {
+            'Lastname__c': '姓',
+            'Firstname__c': '名',
+            'Birthday__c': '生年月日',
+            'Gender__c': '性別',
+            'Class_look__c': 'クラス',
+            'LearningStatus__c': 'ステータス'
+        };
+
+        Object.entries(requiredFields).forEach(([field, label]) => {
+            if (!this.student[field]) {
+                this.errorMessages[field] = `${label}は必須です。`;
                 isValid = false;
             }
         });
 
+        // Age validation
+        if (!this.validateAge()) {
+            isValid = false;
+        }
+
         return isValid;
+    }
+
+    async handleSave() {
+        try {
+            if (!this.validateFields()) {
+                return;
+            }
+
+            this.showSpinner = true;
+            const result = await createStudent({ student: this.student });
+            
+            this.showToast('Success', '学生が正常に作成されました。', 'success');
+            this.dispatchEvent(new CustomEvent('refresh'));
+            this.handleClose();
+
+        } catch (error) {
+            this.handleError(error);
+        } finally {
+            this.showSpinner = false;
+        }
+    }
+
+    handleError(error) {
+        console.error('Error:', error);
+        const message = error.body?.message || error.message || '予期せぬエラーが発生しました。';
+        this.showToast('Error', message, 'error');
     }
 
     handleClose() {
