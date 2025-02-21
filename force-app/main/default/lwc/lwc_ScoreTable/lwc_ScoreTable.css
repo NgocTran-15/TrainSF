@@ -1,0 +1,13 @@
+.semester-title {
+    color: #0070d2;
+    padding: 0.5rem 0;
+}
+
+.custom-combobox {
+    width: 200px;
+}
+
+.slds-text-color_error {
+    color: rgb(194, 57, 52);
+    font-weight: bold;
+}

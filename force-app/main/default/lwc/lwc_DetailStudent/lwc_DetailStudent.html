@@ -7,11 +7,13 @@
                                      onclick={handleClose}
                                      alternative-text="Close"
                                      variant="bare-inverse"
-                                     class="slds-modal__close"></lightning-button-icon>
+                                     class="slds-modal__close">
+                </lightning-button-icon>
             </header>
             <div class="slds-modal__content slds-p-around_medium">
                 <template if:true={hasStudent}>
-                    <div class="slds-grid slds-wrap">
+                    <!-- Student Information -->
+                    <div class="slds-grid slds-wrap slds-m-bottom_medium">
                         <div class="slds-col slds-size_1-of-2 slds-p-horizontal_small">
                             <div class="slds-form-element slds-m-bottom_small">
                                 <span class="slds-form-element__label">学生コード</span>
@@ -51,7 +53,7 @@
                             <div class="slds-form-element slds-m-bottom_small">
                                 <span class="slds-form-element__label">クラス</span>
                                 <div class="slds-form-element__control">
-                                    <div class="slds-form-element__static">{student.Class_look__r.Name}</div>
+                                    <div class="slds-form-element__static">{className}</div>
                                 </div>
                             </div>
                             <div class="slds-form-element slds-m-bottom_small">
@@ -62,15 +64,32 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Score Table -->
+                    <div class="slds-border_top slds-p-top_medium">
+                        <template if:true={student.Id}>
+                            <c-lwc_-score-table 
+                                student-id={student.Id}>
+                            </c-lwc_-score-table>
+                        </template>
+                        <template if:false={student.Id}>
+                            <p>No score data available for this student.</p>
+                        </template>
+                    </div>
                 </template>
-                <!-- Add Score Table Component -->
-                <template if:true={recordId}>
-                    <c-lwc_-score-table student-id={recordId}></c-lwc_-score-table>
+                <template if:false={hasStudent}>
+                    <p>No student data available for record ID: {recordIdDisplay}</p>
+                </template>
+                <template if:true={error}>
+                    <div class="slds-text-color_error">
+                        Error loading student details: {errorMessage}
+                    </div>
                 </template>
             </div>
             <footer class="slds-modal__footer">
                 <lightning-button label="閉じる" 
-                                onclick={handleClose}></lightning-button>
+                                onclick={handleClose}>
+                </lightning-button>
             </footer>
         </div>
     </section>

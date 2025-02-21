@@ -1,50 +1,81 @@
 <template>
-    <lightning-card title="学習成果">
+    <template if:true={hasData}>
         <div class="slds-m-around_medium">
-            <p><strong>合計クレジット:</strong> {totalCredits}</p>
-            <p><strong>平均学分績点:</strong> {averageScore}</p>
-        </div>
-
-        <template for:each={semesterData} for:item="semester">
-            <div key={semester.id} class="slds-m-around_medium">
-                <h2 class="slds-text-heading_small">{semester.name}</h2>
-                <table class="slds-table slds-table_bordered slds-table_cell-buffer">
-                    <thead>
-                        <tr>
-                            <th>科目コード</th>
-                            <th>科目名</th>
-                            <th>クレジット</th>
-                            <th>進捗点</th>
-                            <th>実技点</th>
-                            <th>中間試験点</th>
-                            <th>期末試験点</th>
-                            <th>科目平均点</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <template for:each={semester.subjects} for:item="subject">
-                            <tr key={subject.id}>
-                                <td>{subject.code}</td>
-                                <td>{subject.name}</td>
-                                <td>{subject.credits}</td>
-                                <td>{subject.progressScore}</td>
-                                <td>{subject.practicalScore}</td>
-                                <td>{subject.midtermScore}</td>
-                                <td>{subject.finalScore}</td>
-                                <td class={subject.scoreClass}>{subject.averageScore}</td>
-                            </tr>
-                        </template>
-                        <tr>
-                            <td colspan="7" class="slds-text-align_right"><strong>学期平均</strong></td>
-                            <td>{semester.semesterAverage}</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <h2 class="slds-text-title_bold">学習成果</h2>
+            <div class="slds-p-horizontal_medium">
+                <div class="slds-grid slds-wrap slds-gutters slds-align-items-center slds-grid_align-spread">
+                    <div class="slds-grid slds-gutters">
+                        <div class="slds-col slds-p-horizontal_small slds-align-middle">
+                            <p>合計クレジット: <span class="slds-text-title_bold">{totalCredits}</span></p>
+                        </div>
+                        <div class="slds-col slds-p-horizontal_small slds-align-middle">
+                            <p>平均学分績点: <span class="slds-text-title_bold">{averageGPA}</span></p>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-gutters">
+                        <div class="slds-col slds-p-horizontal_small slds-align-middle">
+                            <lightning-button label="PDF出力" variant="brand"></lightning-button>
+                        </div>
+                        <div class="slds-col slds-p-horizontal_small slds-align-middle">
+                            <lightning-combobox
+                                name="semesterSelect"
+                                value={selectedSemester}
+                                options={semesters}
+                                placeholder="全て"
+                                onchange={handleSemesterChange}
+                                class="custom-combobox"
+                                variant="label-hidden">
+                            </lightning-combobox>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </template>
-
-        <div class="slds-m-around_medium">
-            <lightning-button label="PDF出力" variant="brand" onclick={handleExportPDF}></lightning-button>
+            <template for:each={semesters} for:item="semester">
+                <div key={semester.Id} class="slds-m-top_medium">
+                    <h3 class="slds-text-title_bold">{semester.Name} ({semester.StartDate} ～ {semester.EndDate})</h3>
+                    <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                        <thead>
+                            <tr>
+                                <th>科目コード</th>
+                                <th>科目名</th>
+                                <th>クレジット</th>
+                                <th>進捗点</th>
+                                <th>実技</th>
+                                <th>中間試験</th>
+                                <th>期末試験</th>
+                                <th>科目平均点</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={semester.SubjectScores} for:item="score">
+                                <tr key={score.Id}>
+                                    <td>{score.SubjectCode__c}</td>
+                                    <td>{score.SubjectName__c}</td>
+                                    <td>{score.Credits__c}</td>
+                                    <td>{score.ProgressScore__c}</td>
+                                    <td>{score.PracticalScore__c}</td>
+                                    <td>{score.MidtermScore__c}</td>
+                                    <td>{score.FinalScore__c}</td>
+                                    <td>{score.AverageScore__c}</td>
+                                </tr>
+                            </template>
+                            <tr>
+                                <td colspan="2" class="slds-text-align_right">
+                                    <strong>学期平均</strong>
+                                </td>
+                                <td>{semester.totalCredits}</td>
+                                <td colspan="4"></td>
+                                <td>{semester.semesterGPA}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </template>
         </div>
-    </lightning-card>
+    </template>
+    <template if:true={error}>
+        <div class="slds-text-color_error">
+            {error.body.message}
+        </div>
+    </template>
 </template>
