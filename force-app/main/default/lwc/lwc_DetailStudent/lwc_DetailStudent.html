@@ -57,11 +57,15 @@
                             <div class="slds-form-element slds-m-bottom_small">
                                 <span class="slds-form-element__label">学習状況</span>
                                 <div class="slds-form-element__control">
-                                    <div class="slds-form-element__static">{student.LearningStatus__c}</div>
+                                    <div class="slds-form-element__static">{formattedLearningStatus}</div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </template>
+                <!-- Add Score Table Component -->
+                <template if:true={recordId}>
+                    <c-lwc_-score-table student-id={recordId}></c-lwc_-score-table>
                 </template>
             </div>
             <footer class="slds-modal__footer">

@@ -225,12 +225,8 @@ export default class Lwc_SearchStudent extends LightningElement {
         event.preventDefault();
         event.stopPropagation();
         const studentId = event.target.dataset.id;
-        // Find the student in the existing data
-        const student = this.students.find(s => s.Id === studentId);
-        if (student) {
-            this.selectedStudent = student;
-            this.showViewModal = true;
-        }
+        this.selectedStudentId = studentId;
+        this.showViewModal = true;
     }
 
     // Pagination handling
